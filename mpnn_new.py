@@ -1,26 +1,22 @@
-import numpy as np
-import matplotlib.pyplot as plt
+#import numpy as np
+#import matplotlib.pyplot as plt
 from itertools import combinations, chain, islice
 from itertools import product
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Linear
-import networkx as nx
+#import networkx as nx
 import os
-import torch.optim as optim
+
 from torch.optim import Adam
-from torch.optim import SGD
+
 from math import ceil
-import argparse
-from matplotlib.pylab import plt
+
+#from matplotlib.pylab import plt
 from torch.nn import Sequential as Seq, Linear, ReLU, LeakyReLU
 from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
-from torch.optim.lr_scheduler import StepLR, ReduceLROnPlateau
-from torch_scatter import scatter_min, scatter_max, scatter_add, scatter_mean
 
-from torch_geometric.utils import  remove_self_loops
-from sklearn.model_selection import ParameterGrid
 import random
 from random import sample
 from new_model import ramsey_MPNN, loss_func, cost
@@ -51,6 +47,7 @@ lr_2=args.learning_rate_2
 
 epochs = args.epochs """
 
+device= torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 config=dict(
         hidden_channels= 64,
         num_features= 32,
@@ -149,13 +146,13 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         cliques_r=random.sample(list(all_cliques_r),num_cliques)
         cliques_s=random.sample(list(all_cliques_s),2*num_cliques)
         #cliques=torch.combinations(torch.arange(num_nodes),clique_r)
-        probs=net(torch.randn(net.num_nodes, net.num_features))
-        loss=loss_func(probs,cliques_r,cliques_s)
+        probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
+        loss=loss_func(probs,cliques_r,cliques_s).to(device)
         loss.backward()
         
         if epoch%10==0:
             wandb.log({"epoch": epoch, "loss": loss.item()})
-            print('Epoch: ', epoch, 'loss:', loss.item())
+            #print('Epoch: ', epoch, 'loss:', loss.item())
     
         torch.nn.utils.clip_grad_norm_(net.parameters(),1)
         
@@ -169,14 +166,14 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
 #torch.manual_seed(0)
 
 def make(config):
-    net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features) 
+    net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features).to(device) 
     net.reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
     optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.0)
     optimizer_2= Adam(net.edge_pred_net.parameters(), lr=config.lr_2, weight_decay=0.0)
 
-    all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r) 
-    all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
+    all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r).to(device) 
+    all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s).to(device)
     #train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
     #torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}.pth')
     return net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s
@@ -228,7 +225,7 @@ def optimal_new(all_cliques_r,all_cliques_s,num_samples, samples):
 
 #retrieve deterministically
 def decode_graph(num_nodes,probs,cliques_r,cliques_s):
-    edge_index = torch.combinations(torch.arange(num_nodes), r=2).t()
+    edge_index = torch.combinations(torch.arange(num_nodes), r=2).t().to(device)
     flat_probs = probs[edge_index[0], edge_index[1]]
     sorted_inds = torch.argsort(flat_probs, descending=True)
     
@@ -252,8 +249,8 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         
         #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
         #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
-        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
+        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s).to(device) #initial, edge is red
+        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s).to(device)
             
         if expected_obj_0 > expected_obj_1: 
             sets[src, dst] = 1  # Edge is blue
@@ -261,7 +258,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         else:
             sets[src, dst] = 0  # Edge is red
             sets[dst,src] = 0  
-    expected_obj_G = cost(sets, cliques_r,cliques_s)
+    expected_obj_G = cost(sets, cliques_r,cliques_s).to(device)
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
@@ -275,7 +272,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2):
         #net.load_state_dict(torch.load(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.pth'))
         #net.load_state_dict(torch.load(f'model_{num_nodes}_{hidden_channels}_{lr_1}_{lr_2}.pth'))
         net.eval()
-        probs=net(torch.randn(net.num_nodes, net.num_features))
+        probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
         """ coloring=mc_sampling_new(probs, num_samples)
         results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
@@ -298,7 +295,7 @@ def model_pipeline(hyperparameters):
         config = wandb.config
         
         torch.manual_seed(config.seed)
-        np.random.seed(config.seed)
+        #np.random.seed(config.seed)
         random.seed(config.seed)
 
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
