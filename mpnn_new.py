@@ -56,31 +56,9 @@ config=dict(
         seed=0,
 )
 
-""" sweep_config={
-    'method':'grid',
-    'parameters':{
-        'hidden_channels':{
-            'values': list(range(32,128))
-        },
-        'num_features':{
-            'values': list(range(32,64))
-        },
-        'lr_1':{
-            'values':[0.001,0.01,0.0001]
-        },
-        'lr_2':{
-            'values':[0.001,0.01,0.0001]
-        },
-        'seed':{
-            'values':list(range(0,10))
-        }
-    }
-}
-sweep_id=wandb.sweep(sweep_config, project='project')
-"""
 graph_parameters={
-    'num_nodes': 14,   
-    'num_cliques':256, # 256
+    'num_nodes': 17,   
+    'num_cliques':512, 
     'clique_r':4,
     'clique_s':4
 }
@@ -96,7 +74,7 @@ lr_decay_step_size = 10
 lr_decay_factor = 0.95
 
 
-epochs = 100
+epochs = 200
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90

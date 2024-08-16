@@ -31,8 +31,8 @@ class ramsey_MPNN(torch.nn.Module):
         #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #nn.init.xavier_uniform_(self.node_features) 
         #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
-        self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,num_features), ReLU()))
-        self.conv2 = GINConv(Sequential(Linear(num_features, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,num_features), ReLU())) #changed
+        self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
+        self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,num_features), ReLU())) #changed
         #self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
         self.lin1=Linear(num_features,hidden_channels)
         
@@ -65,9 +65,12 @@ class ramsey_MPNN(torch.nn.Module):
         xinit=x
         
         x=self.conv1(x, edge_index) 
-        x=x+xinit
+        #x=x+xinit
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.32, training=self.training) 
+        x=self.conv2(x, edge_index)
+        x=F.leaky_relu(x)
+        x=F.dropout(x,p=0.32, training=self.training)
         
         
         """ x=self.conv2(x, edge_index)
@@ -94,7 +97,7 @@ class ramsey_MPNN(torch.nn.Module):
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels):
         super(EdgePredNet, self).__init__() 
-        self.lin = Sequential(Linear(2*num_features, 64), ReLU(), Linear(64, 1),torch.nn.Sigmoid())
+        self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), LeakyReLU(), Linear(hidden_channels, 1), torch.nn.Sigmoid())
     def forward(self, x, edge_index):
         x_i = x[edge_index[0], :]
