@@ -128,7 +128,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         loss=loss_func(probs,cliques_r,cliques_s).to(device)
         loss.backward()
         
-        if epoch%10==0:
+        if epoch%10==0 or epoch==epochs-1:
             wandb.log({"epoch": epoch, "loss": loss.item()})
             #print('Epoch: ', epoch, 'loss:', loss.item())
     
@@ -283,7 +283,7 @@ def model_pipeline(hyperparameters):
         net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}.pth'))
         
         evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2)
-        print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2))
+        #print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2))
         
         return net
     
