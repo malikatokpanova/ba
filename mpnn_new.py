@@ -74,7 +74,7 @@ lr_decay_step_size = 10
 lr_decay_factor = 0.95
 
 
-epochs = 200
+epochs = 400
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
