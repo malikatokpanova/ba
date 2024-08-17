@@ -24,17 +24,22 @@ class ramsey_MPNN(torch.nn.Module):
         self.num_features=num_features
         self.num_nodes=num_nodes
         self.hidden_channels=hidden_channels
-        #self.node_embedding = nn.Embedding(num_nodes, num_features)
+        self.node_embedding = nn.Embedding(num_nodes, num_features)
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
-        self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        torch.nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
+        #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
+        #torch.nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #torch.nn.init.kaiming_normal_(self.node_features)
         #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #nn.init.xavier_uniform_(self.node_features) 
         #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
-        self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
-        self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) #changed
-        self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
+        #self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
+        #self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) #changed
+        #self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
+        self.conv1 = SAGEConv(num_features, hidden_channels)
+        self.conv2 = SAGEConv(hidden_channels, hidden_channels)
+        self.conv3 = SAGEConv(hidden_channels, hidden_channels)
+        self.conv4 = SAGEConv(hidden_channels, hidden_channels)
+        self.conv5 = SAGEConv(hidden_channels, num_features)
         
         self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,num_features)  
@@ -46,6 +51,8 @@ class ramsey_MPNN(torch.nn.Module):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
         self.conv3.reset_parameters()
+        self.conv4.reset_parameters()
+        self.conv5.reset_parameters
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters() 
@@ -54,21 +61,21 @@ class ramsey_MPNN(torch.nn.Module):
         #nn.init.uniform_(self.node_embedding.weight, -0.1, 0.1)
         #torch.nn.init.xavier_uniform_(self.node_features) 
         #torch.nn.init.kaiming_normal_(self.node_features)
-        nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
+        #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
         #self.edge_pred_net.reset_parameters()    
         #nn.init.normal_(self.node_features, mean=0, std=1) 
     
     def forward(self,x):
-        x = self.node_features
+        #x = self.node_features
         
-        #x=self.node_embedding.weight
+        x=self.node_embedding.weight
         num_nodes = x.shape[0]
         edge_index = torch.combinations(torch.arange(self.num_nodes), r=2).t()
         
         xinit=x
         
-        """ x=self.conv1(x, edge_index) 
+        x=self.conv1(x, edge_index) 
         #x=x+xinit
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.32, training=self.training) 
@@ -76,7 +83,13 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(x)
         x=F.dropout(x,p=0.32, training=self.training)
         x=self.conv3(x, edge_index)
-        x=F.leaky_relu(x)  """
+        x=F.leaky_relu(x)  
+        x=F.dropout(x, p=0.32, training=self.training)
+        x=self.conv4(x, edge_index)
+        x=F.leaky_relu(x)
+        x=F.dropout(x, p=0.32, training=self.training)
+        x=self.conv5(x, edge_index)
+        x=F.leaky_relu(x)
         
         """ x=self.conv2(x, edge_index)
         x=F.leaky_relu(x,negative_slope=0.02)
@@ -85,13 +98,13 @@ class ramsey_MPNN(torch.nn.Module):
         #x=x+self.conv2(x, edge_index)
     
     
-        x=self.lin1(x)
+        """ x=self.lin1(x)
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training) 
         x=self.lin2(x) 
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training)
-        """ x=self.lin3(x)
+        x=self.lin3(x)
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training)
         x=self.lin4(x) """
