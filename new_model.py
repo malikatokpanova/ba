@@ -80,7 +80,7 @@ class ramsey_MPNN(torch.nn.Module):
         x=self.conv1(x, edge_index) 
         #x=x+xinit
         x=F.leaky_relu(x)
-        #x=F.dropout(x, p=0.32, training=self.training) 
+        x=F.dropout(x, p=0.32, training=self.training) 
         x=self.conv2(x, edge_index)
         x=F.leaky_relu(x)
         x=self.conv3(x, edge_index)
