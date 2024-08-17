@@ -69,9 +69,9 @@ class ramsey_MPNN(torch.nn.Module):
         #nn.init.normal_(self.node_features, mean=0, std=1) 
     
     def forward(self,x):
-        #x = self.node_features
+        x = self.node_features
         
-        x=self.node_embedding.weight
+        #x=self.node_embedding.weight
         num_nodes = x.shape[0]
         edge_index = torch.combinations(torch.arange(self.num_nodes), r=2).t()
         
