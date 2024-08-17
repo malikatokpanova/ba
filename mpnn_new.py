@@ -124,9 +124,12 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         #cliques_s=torch.randint(0,num_nodes, (num_cliques, clique_s))
         cliques_r=random.sample(list(all_cliques_r),num_cliques)
         cliques_s=random.sample(list(all_cliques_s),2*num_cliques)
+        
+        cliques_r=torch.tensor(cliques_r).to(device)
+        cliques_s=torch.tensor(cliques_s).to(device)
         #cliques=torch.combinations(torch.arange(num_nodes),clique_r)
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
-        loss=loss_func(probs,cliques_r,cliques_s).to(device)
+        loss=loss_func(probs,cliques_r,cliques_s)
         loss.backward()
         
         if epoch%10==0 or epoch==epochs-1:
@@ -146,7 +149,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
 
 def make(config):
     net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features).to(device) 
-    net.reset_parameters()
+    net.to(device).reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
     optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.0)
     optimizer_2= Adam(net.edge_pred_net.parameters(), lr=config.lr_2, weight_decay=0.0)
@@ -208,7 +211,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     flat_probs = probs[edge_index[0], edge_index[1]]
     sorted_inds = torch.argsort(flat_probs, descending=True)
     
-    sets = probs.detach().clone()  
+    sets = probs.detach().clone().to(device)
     
     for flat_index in sorted_inds:
         
@@ -228,8 +231,8 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         
         #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
         #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s).to(device) #initial, edge is red
-        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s).to(device)
+        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
+        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
             
         if expected_obj_0 > expected_obj_1: 
             sets[src, dst] = 1  # Edge is blue
@@ -237,7 +240,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         else:
             sets[src, dst] = 0  # Edge is red
             sets[dst,src] = 0  
-    expected_obj_G = cost(sets, cliques_r,cliques_s).to(device)
+    expected_obj_G = cost(sets, cliques_r,cliques_s)
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
@@ -276,7 +279,8 @@ def model_pipeline(hyperparameters):
         torch.manual_seed(config.seed)
         #np.random.seed(config.seed)
         random.seed(config.seed)
-
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
         train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
