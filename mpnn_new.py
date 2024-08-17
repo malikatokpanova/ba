@@ -58,7 +58,7 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 17,   
-    'num_cliques':512, 
+    'num_cliques':256, 
     'clique_r':4,
     'clique_s':4
 }
@@ -74,7 +74,7 @@ lr_decay_step_size = 10
 lr_decay_factor = 0.95
 
 
-epochs = 1000
+epochs = 300
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
