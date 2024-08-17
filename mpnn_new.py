@@ -74,7 +74,7 @@ lr_decay_step_size = 10
 lr_decay_factor = 0.95
 
 
-epochs = 300
+epochs = 500
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
@@ -103,7 +103,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         count=0
-
+        if epoch== 300:
+            net.node_features.requires_grad = False
         """ if epoch % 5 == 0:
             edge_drop_p = edge_drop_p*edge_dropout_decay
             print("Edge_dropout: ", edge_drop_p) """
@@ -136,7 +137,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         
         optimizer_1.step()
         optimizer_2.step()
-    
+
         train_loss_dict[epoch]=loss.item() 
         
         
