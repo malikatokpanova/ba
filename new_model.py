@@ -32,11 +32,11 @@ class ramsey_MPNN(torch.nn.Module):
         #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #nn.init.xavier_uniform_(self.node_features) 
         #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
-        #self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
-        #self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) #changed
+        self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
+        self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,num_features), ReLU())) 
         #self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
-        self.conv1 = SAGEConv(num_features, hidden_channels)
-        self.conv2 = SAGEConv(hidden_channels, hidden_channels)
+        #self.conv1 = SAGEConv(num_features, hidden_channels)
+        #self.conv2 = SAGEConv(hidden_channels, hidden_channels)
         self.conv3 = SAGEConv(hidden_channels, hidden_channels)
         self.conv4 = SAGEConv(hidden_channels, hidden_channels)
         self.conv5 = SAGEConv(hidden_channels, num_features)
@@ -80,7 +80,7 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.32, training=self.training) 
         x=self.conv2(x, edge_index)
-        x=F.leaky_relu(x)
+        """ x=F.leaky_relu(x)
         x=F.dropout(x,p=0.32, training=self.training)
         x=self.conv3(x, edge_index)
         x=F.leaky_relu(x)  
@@ -89,25 +89,21 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.32, training=self.training)
         x=self.conv5(x, edge_index)
-        x=F.leaky_relu(x)
+        x=F.leaky_relu(x) """
         
-        """ x=self.conv2(x, edge_index)
-        x=F.leaky_relu(x,negative_slope=0.02)
-        x=F.dropout(x, p=0.32, training=self.training)
-        x=self.conv3(x, edge_index)  """
-        #x=x+self.conv2(x, edge_index)
+        
     
     
-        """ x=self.lin1(x)
+        x=self.lin1(x)
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training) 
         x=self.lin2(x) 
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training)
-        x=self.lin3(x)
+        """ x=self.lin3(x)
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training)
-        x=self.lin4(x) """
+        x=self.lin4(x) """ 
                   
         probs = torch.zeros(num_nodes, num_nodes)
         edge_pred = self.edge_pred_net(x, edge_index)
