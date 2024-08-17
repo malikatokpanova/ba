@@ -74,7 +74,7 @@ lr_decay_step_size = 10
 lr_decay_factor = 0.95
 
 
-epochs = 500
+epochs = 1000
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
@@ -136,7 +136,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         
         optimizer_1.step()
         optimizer_2.step()
-        
+    
         train_loss_dict[epoch]=loss.item() 
         
         
