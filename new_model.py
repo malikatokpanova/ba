@@ -24,24 +24,24 @@ class ramsey_MPNN(torch.nn.Module):
         self.num_features=num_features
         self.num_nodes=num_nodes
         self.hidden_channels=hidden_channels
-        self.node_embedding = nn.Embedding(num_nodes, num_features)
-        #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        #self.node_embedding = nn.Embedding(num_nodes, num_features)
+        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         #torch.nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #torch.nn.init.kaiming_normal_(self.node_features)
         #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
         #nn.init.xavier_uniform_(self.node_features) 
         #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
-        #self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
-        #self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,num_features), ReLU())) 
-        #self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
-        self.conv1 = SAGEConv(num_features, hidden_channels)
+        self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
+        self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) 
+        self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
+        """ self.conv1 = SAGEConv(num_features, hidden_channels)
         self.conv2 = SAGEConv(hidden_channels, hidden_channels)
         self.conv3 = SAGEConv(hidden_channels, hidden_channels)
         self.conv4 = SAGEConv(hidden_channels, hidden_channels)
         self.conv5 = SAGEConv(hidden_channels, hidden_channels)
         self.conv6= SAGEConv(hidden_channels, num_features)
-        
+         """
         self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,num_features)  
         self.lin3 = Linear(hidden_channels, hidden_channels)
@@ -52,9 +52,9 @@ class ramsey_MPNN(torch.nn.Module):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
         self.conv3.reset_parameters()
-        self.conv4.reset_parameters()
-        self.conv5.reset_parameters
-        self.conv6.reset_parameters()
+        """ self.conv4.reset_parameters()
+        self.conv5.reset_parameters()
+        self.conv6.reset_parameters() """
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters() 
@@ -85,12 +85,7 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(x)
         x=self.conv3(x, edge_index)
         x=F.leaky_relu(x)
-        x=self.conv4(x, edge_index)
-        x=F.leaky_relu(x)
-        x=self.conv5(x, edge_index)
-        x=F.leaky_relu(x)
-        x=self.conv6(x, edge_index)
-        x=F.leaky_relu(x)
+        
         """ x=F.leaky_relu(x)
         x=F.dropout(x,p=0.32, training=self.training)
         x=self.conv3(x, edge_index)
@@ -109,8 +104,8 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training) 
         x=self.lin2(x) 
-        x=F.leaky_relu(x)
-        x=F.dropout(x, p=0.3, training=self.training)
+        #x=F.leaky_relu(x)
+        #x=F.dropout(x, p=0.3, training=self.training)
         """ x=self.lin3(x)
         x=F.leaky_relu(x)
         x=F.dropout(x, p=0.3, training=self.training)
@@ -128,9 +123,9 @@ class ramsey_MPNN(torch.nn.Module):
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels):
         super(EdgePredNet, self).__init__() 
-        self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
+        #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), LeakyReLU(), Linear(hidden_channels, 1), torch.nn.Sigmoid())
-        """ self.lin = Sequential(
+        self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
             Linear(hidden_channels, hidden_channels),
@@ -139,7 +134,7 @@ class EdgePredNet(torch.nn.Module):
             ReLU(),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
-        ) """
+        ) 
     def forward(self, x, edge_index):
         x_i = x[edge_index[0], :]
         x_j = x[edge_index[1], :]
