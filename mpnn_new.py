@@ -129,7 +129,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         cliques_s=torch.tensor(cliques_s,dtype=torch.long).to(device)
         #cliques=torch.combinations(torch.arange(num_nodes),clique_r)
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
-        loss=loss_func(probs,cliques_r,cliques_s,net)
+        loss=loss_func(probs,cliques_r,cliques_s)
         loss.backward()
         
         if epoch%10==0 or epoch==epochs-1:
@@ -231,8 +231,8 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         
         #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
         #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s,net) #initial, edge is red
-        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s,net)
+        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
+        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
             
         if expected_obj_0 > expected_obj_1: 
             sets[src, dst] = 1  # Edge is blue

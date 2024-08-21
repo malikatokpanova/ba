@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import Linear
-from torch.nn import Sequential as Seq, Linear, ReLU, LeakyReLU, BatchNorm1d
+from torch.nn import Sequential as Seq, Linear, ReLU, LeakyReLU, BatchNorm1d, Dropout
 
 from torch_geometric.utils import degree
 from torch_geometric.nn import GINConv, GATConv, GCNConv, SAGEConv, GatedGraphConv
@@ -128,13 +128,16 @@ class EdgePredNet(torch.nn.Module):
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
+            Dropout(p=0.5),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
+            Dropout(p=0.5),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
+            Dropout(p=0.5),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
-        ) 
+        )
     def forward(self, x, edge_index):
         x_i = x[edge_index[0], :]
         x_j = x[edge_index[1], :]
