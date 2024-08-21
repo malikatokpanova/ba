@@ -41,7 +41,7 @@ class ramsey_MPNN(torch.nn.Module):
         self.conv4 = SAGEConv(hidden_channels, hidden_channels)
         self.conv5 = SAGEConv(hidden_channels, hidden_channels)
         self.conv6= SAGEConv(hidden_channels, num_features)
-         """
+        """
         self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,num_features)  
         self.lin3 = Linear(hidden_channels, hidden_channels)
@@ -52,9 +52,9 @@ class ramsey_MPNN(torch.nn.Module):
         self.conv1.reset_parameters()
         self.conv2.reset_parameters()
         self.conv3.reset_parameters()
-        """ self.conv4.reset_parameters()
+        """self.conv4.reset_parameters()
         self.conv5.reset_parameters()
-        self.conv6.reset_parameters() """
+        self.conv6.reset_parameters()"""
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters() 
@@ -83,9 +83,11 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.dropout(x, p=0.32, training=self.training) 
         x=self.conv2(x, edge_index)
         x=F.leaky_relu(x)
+        x=F.dropout(x, p=0.32, training=self.training)
         x=self.conv3(x, edge_index)
         x=F.leaky_relu(x)
-        
+        x=F.dropout(x, p=0.32, training=self.training)
+        x=x+xinit
         """ x=F.leaky_relu(x)
         x=F.dropout(x,p=0.32, training=self.training)
         x=self.conv3(x, edge_index)
@@ -128,13 +130,13 @@ class EdgePredNet(torch.nn.Module):
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
-            Dropout(p=0.5),
+            Dropout(p=0.3),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
-            Dropout(p=0.5),
+            Dropout(p=0.3),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
-            Dropout(p=0.5),
+            Dropout(p=0.3),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
         )
@@ -145,7 +147,7 @@ class EdgePredNet(torch.nn.Module):
 
         return self.lin(edge_features)
 
-def loss_func(probs, cliques_r,cliques_s,model, penalty_coeff=1e-4):
+def loss_func(probs, cliques_r,cliques_s):
     loss = 0
     cliques_r = cliques_r.to(probs.device)
     cliques_s = cliques_s.to(probs.device)
@@ -175,10 +177,7 @@ def loss_func(probs, cliques_r,cliques_s,model, penalty_coeff=1e-4):
     else:
         N = cliques_r.size(0)
         
-    l2_reg = sum(param.pow(2).sum() for param in model.parameters())
-    
-    loss= loss/N + penalty_coeff * l2_reg
-    return loss
+    return loss/N
 
     
 #evaluation
