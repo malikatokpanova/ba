@@ -142,7 +142,7 @@ class EdgePredNet(torch.nn.Module):
 
         return self.lin(edge_features)
 
-def loss_func(probs, cliques_r,cliques_s):
+def loss_func(probs, cliques_r,cliques_s,model, penalty_coeff=1e-4):
     loss = 0
     cliques_r = cliques_r.to(probs.device)
     cliques_s = cliques_s.to(probs.device)
@@ -171,7 +171,11 @@ def loss_func(probs, cliques_r,cliques_s):
         N = cliques_r.size(0) + cliques_s.size(0)
     else:
         N = cliques_r.size(0)
-    return loss/N 
+        
+    l2_reg = sum(param.pow(2).sum() for param in model.parameters())
+    
+    loss= loss/N + penalty_coeff * l2_reg
+    return loss
 
     
 #evaluation
