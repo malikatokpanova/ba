@@ -83,10 +83,10 @@ class ramsey_MPNN(torch.nn.Module):
         xinit=x.clone()
          
         x=F.leaky_relu(self.conv1(x, edge_index))
-        x=F.dropout(x, p=0.3, training=self.training) 
+        x=F.dropout(x, p=0.5, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
-            x = F.dropout(x, p=0.3, training=self.training)
+            x = F.dropout(x, p=0.5, training=self.training)
         #x=x+xinit
         """ x=F.leaky_relu(x)
         x=F.dropout(x,p=0.32, training=self.training)
@@ -102,7 +102,7 @@ class ramsey_MPNN(torch.nn.Module):
         
     
         x=F.leaky_relu(self.lin1(x))
-        x=F.dropout(x, p=0.3, training=self.training) 
+        x=F.dropout(x, p=0.5, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
         #x=F.leaky_relu(x)
         #x=F.dropout(x, p=0.3, training=self.training)
@@ -128,13 +128,13 @@ class EdgePredNet(torch.nn.Module):
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
-            Dropout(p=0.3),
+            Dropout(p=0.5),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
-            Dropout(p=0.3),
+            Dropout(p=0.5),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
-            Dropout(p=0.3),
+            Dropout(p=0.5),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
         )
