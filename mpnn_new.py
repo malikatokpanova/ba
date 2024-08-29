@@ -136,7 +136,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         if epoch%10==0 or epoch==epochs-1:
             wandb.log({"epoch": epoch, "loss": loss.item()})
             #print('Epoch: ', epoch, 'loss:', loss.item())
-    
+            wandb.log({"epoch": epoch, "node_features": net.node_embedding.weight.detach().cpu()})
         torch.nn.utils.clip_grad_norm_(net.parameters(),1)
         
         optimizer_1.step()
