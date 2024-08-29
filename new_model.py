@@ -101,10 +101,10 @@ class ramsey_MPNN(torch.nn.Module):
         
         
     
-        x=F.leaky_relu(self.lin1(x))
+        """ x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=0.5, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
-        x=x+xinit
+        x=x+xinit """
         #x=F.leaky_relu(x)
         #x=F.dropout(x, p=0.3, training=self.training)
         """ x=self.lin3(x)
