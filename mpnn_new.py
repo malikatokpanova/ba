@@ -136,7 +136,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         if epoch%10==0 or epoch==epochs-1:
             wandb.log({"epoch": epoch, "loss": loss.item()})
             #print('Epoch: ', epoch, 'loss:', loss.item())
-            wandb.log({"epoch": epoch, "node_features": net.node_embedding.weight.detach().cpu()})
+            variance=net.node_embedding.weight.detach().cpu().var(dim=0).mean().item()
+            wandb.log({"epoch": epoch, "node embeddings variance": variance})
         torch.nn.utils.clip_grad_norm_(net.parameters(),1)
         
         optimizer_1.step()
@@ -152,8 +153,8 @@ def make(config):
     net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features, config.num_layers).to(device) 
     net.to(device).reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
-    optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.0)
-    optimizer_2= Adam(net.edge_pred_net.parameters(), lr=config.lr_2, weight_decay=0.0)
+    optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.01)
+    optimizer_2= Adam(net.edge_pred_net.parameters(), lr=config.lr_2, weight_decay=0.01)
 
     all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r).to(device) 
     all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s).to(device)
