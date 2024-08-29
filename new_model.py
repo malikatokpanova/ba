@@ -50,7 +50,7 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         
         self.gat1=GATConv(num_features, hidden_channels, heads=heads, dropout=0.3)
-        self.gat2=GATConv(hidden_channels*heads, num_features, heads=heads, dropout=0.3)
+        self.lin=Linear(hidden_channels*heads,num_features)
         """ self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
         self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) 
         self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
@@ -74,7 +74,7 @@ class ramsey_MPNN(torch.nn.Module):
         self.lin2.reset_parameters()
         
         self.gat1.reset_parameters()
-        self.gat2.reset_parameters()
+        self.lin.reset_parameters()
         #nn.init.normal_(self.node_embedding.weight, std=0.1)
         nn.init.kaiming_normal_(self.node_embedding.weight, nonlinearity='relu')
     
@@ -106,7 +106,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         x = F.elu(self.gat1(x, edge_index))
         x = F.dropout(x, p=0.5, training=self.training)
-        x = F.elu(self.gat2(x, edge_index))
+        x = F.elu(self.lin(x))
         x = F.dropout(x, p=0.5, training=self.training)
         
     
