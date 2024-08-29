@@ -19,75 +19,75 @@ from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 #from layers.mlp_readout_layer import MLPReadout
                     
 class ramsey_MPNN(torch.nn.Module):
-    def __init__(self, num_nodes, hidden_channels,num_features,heads=3):#num_layers, hidden1, hidden2,mask_prob=0.1):
+    def __init__(self, num_nodes, hidden_channels,num_features,num_layers,heads=3):#num_layers, hidden1, hidden2,mask_prob=0.1):
         super(ramsey_MPNN, self).__init__()
         self.num_features=num_features
         self.num_nodes=num_nodes
         self.hidden_channels=hidden_channels
-        #self.node_embedding = nn.Embedding(num_nodes, num_features)
-        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        self.momentum = 0.1
+        self.node_embedding = nn.Embedding(num_nodes, num_features)
+        nn.init.normal_(self.node_embedding.weight, std=0.1)
+        self.numlayers=num_layers
+        self.convs=nn.ModuleList()
+        for i in range(num_layers - 1):
+            self.convs.append(GINConv(Sequential(
+            Linear(hidden_channels, hidden_channels),
+            ReLU(),
+            Linear(hidden_channels, hidden_channels),
+            ReLU(),
+            BN(hidden_channels, momentum=self.momentum),
+        ),train_eps=True)) 
+        self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
+            ReLU(),
+            Linear( hidden_channels,  hidden_channels),
+            ReLU(),
+            BN(hidden_channels, momentum=self.momentum),
+        ),train_eps=True)
+        self.lin1=Linear(hidden_channels,hidden_channels)
+        self.lin2=Linear(hidden_channels,num_features)
+        #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        #torch.nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
-        #torch.nn.init.kaiming_normal_(self.node_features)
-        #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
-        #nn.init.xavier_uniform_(self.node_features) 
-        #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
-        self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
+        
+        """ self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
         self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) 
         self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
-        """ self.conv1 = SAGEConv(num_features, hidden_channels)
-        self.conv2 = SAGEConv(hidden_channels, hidden_channels)
-        self.conv3 = SAGEConv(hidden_channels, hidden_channels)
-        self.conv4 = SAGEConv(hidden_channels, hidden_channels)
-        self.conv5 = SAGEConv(hidden_channels, hidden_channels)
-        self.conv6= SAGEConv(hidden_channels, num_features)
-        """
+        
         self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,num_features)  
         self.lin3 = Linear(hidden_channels, hidden_channels)
-        self.lin4 = Linear(hidden_channels, num_features)
+        self.lin4 = Linear(hidden_channels, num_features) """
+        
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels) 
         
     def reset_parameters(self):
         self.conv1.reset_parameters()
-        self.conv2.reset_parameters()
-        self.conv3.reset_parameters()
-        """self.conv4.reset_parameters()
-        self.conv5.reset_parameters()
-        self.conv6.reset_parameters()"""
+        #self.conv2.reset_parameters()
+        #self.conv3.reset_parameters()
+        
+        for conv in self.convs:
+            conv.reset_parameters() 
         
         self.lin1.reset_parameters()
-        self.lin2.reset_parameters() 
-        self.lin3.reset_parameters()
-        self.lin4.reset_parameters()
-        #nn.init.uniform_(self.node_embedding.weight, -0.1, 0.1)
-        #torch.nn.init.xavier_uniform_(self.node_features) 
-        #torch.nn.init.kaiming_normal_(self.node_features)
-        #nn.init.kaiming_uniform_(self.node_features, nonlinearity='relu')
-        #nn.init.uniform_(self.node_features, a=0.0, b=1.0)
-        #self.edge_pred_net.reset_parameters()    
-        #nn.init.normal_(self.node_features, mean=0, std=1) 
+        self.lin2.reset_parameters()
+        
+        nn.init.normal_(self.node_embedding.weight, std=0.1)
+        
     
     def forward(self,x):
-        x = self.node_features
+        #x = self.node_features
         
-        #x=self.node_embedding.weight
+        x=self.node_embedding.weight
         num_nodes = x.shape[0]
         edge_index = torch.combinations(torch.arange(self.num_nodes), r=2).t()
         
-        xinit=x
-        
-        x=self.conv1(x, edge_index) 
+        xinit=x.clone()
+         
+        x=F.leaky_relu(self.conv1(x, edge_index))
+        x=F.dropout(x, p=0.3, training=self.training) 
+        for conv in self.convs:
+            x = F.leaky_relu(conv(x, edge_index))
+            x = F.dropout(x, p=0.3, training=self.training)
         #x=x+xinit
-        x=F.leaky_relu(x)
-        x=F.dropout(x, p=0.32, training=self.training) 
-        x=self.conv2(x, edge_index)
-        x=F.leaky_relu(x)
-        x=F.dropout(x, p=0.32, training=self.training)
-        x=self.conv3(x, edge_index)
-        x=F.leaky_relu(x)
-        x=F.dropout(x, p=0.32, training=self.training)
-        x=x+xinit
         """ x=F.leaky_relu(x)
         x=F.dropout(x,p=0.32, training=self.training)
         x=self.conv3(x, edge_index)
@@ -101,11 +101,9 @@ class ramsey_MPNN(torch.nn.Module):
         
         
     
-    
-        x=self.lin1(x)
-        x=F.leaky_relu(x)
+        x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=0.3, training=self.training) 
-        x=self.lin2(x) 
+        x=F.leaky_relu(self.lin2(x)) 
         #x=F.leaky_relu(x)
         #x=F.dropout(x, p=0.3, training=self.training)
         """ x=self.lin3(x)
@@ -149,8 +147,7 @@ class EdgePredNet(torch.nn.Module):
 
 def loss_func(probs, cliques_r,cliques_s):
     loss = 0
-    cliques_r = cliques_r.to(probs.device)
-    cliques_s = cliques_s.to(probs.device)
+    
     for clique in cliques_r:   
         edge_indices=torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]

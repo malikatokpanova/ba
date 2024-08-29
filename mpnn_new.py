@@ -54,6 +54,7 @@ config=dict(
         lr_1=0.001,
         lr_2=0.01,
         seed=0,
+        num_layers=5,
 )
 
 graph_parameters={
@@ -148,7 +149,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
 #torch.manual_seed(0)
 
 def make(config):
-    net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features).to(device) 
+    net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features, config.num_layers).to(device) 
     net.to(device).reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
     optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.0)
@@ -279,10 +280,10 @@ def model_pipeline(hyperparameters):
         torch.manual_seed(config.seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(config.seed)
-        
         random.seed(config.seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+        
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
         net.to(device)
         train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
