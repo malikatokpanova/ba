@@ -83,7 +83,7 @@ edge_dropout_decay = 0.90
 
 #for plotting loss values
 train_loss_dict={}
-
+threshold=0.0005
 
 #train
 def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_features, learning_rate_1,learning_rate_2, epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s):
@@ -138,6 +138,16 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
             #print('Epoch: ', epoch, 'loss:', loss.item())
             variance=net.node_embedding.weight.detach().cpu().var(dim=0).mean().item()
             wandb.log({"epoch": epoch, "node embeddings variance": variance})
+            
+            if variance<threshold:
+                print(f"Early stopping at epoch {epoch}, low variance: {variance}")
+                break
+            if variance < 0.001:
+                for param_group in optimizer_1.param_groups:
+                    param_group['lr'] *= 0.9
+                for param_group in optimizer_2.param_groups:
+                    param_group['lr'] *= 0.9
+                    
         torch.nn.utils.clip_grad_norm_(net.parameters(),1)
         
         optimizer_1.step()
