@@ -256,7 +256,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
-def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2):
+def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers):
     results = {}
     results_sampling={}
     num_samples=100
@@ -278,8 +278,8 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2):
         results[params_key][num_nodes]=results_fin
         """
         wandb.log({"cost": results_fin[1]})#, "coloring":results_fin[0]})
-    torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.onnx')
-    wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.onnx')
+    torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
+    wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     return results_fin
         
 #results, sets=evaluate(num_nodes, clique_r, clique_s)
@@ -299,10 +299,10 @@ def model_pipeline(hyperparameters):
         net.to(device)
         train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
-        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}.pth')
-        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}.pth'))
+        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth')
+        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth'))
         
-        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2)
+        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers)
         #print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2))
         
         return net
