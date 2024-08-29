@@ -153,8 +153,8 @@ def make(config):
     net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features, config.num_layers).to(device) 
     net.to(device).reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
-    optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.01)
-    optimizer_2= Adam(net.edge_pred_net.parameters(), lr=config.lr_2, weight_decay=0.01)
+    optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.09)
+    optimizer_2= Adam(net.edge_pred_net.parameters(), lr=config.lr_2, weight_decay=0.09)
 
     all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r).to(device) 
     all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s).to(device)
