@@ -49,9 +49,6 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         
-        self.gat1=GATConv(num_features, hidden_channels, heads=heads, dropout=0.3)
-        self.gat2=GATConv(hidden_channels*heads, hidden_channels, heads=heads, dropout=0.3)
-        self.lin=Linear(hidden_channels*heads,num_features)
         """ self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
         self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) 
         self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
@@ -74,12 +71,8 @@ class ramsey_MPNN(torch.nn.Module):
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
         
-        self.gat1.reset_parameters()
-        self.gat2.reset_parameters()
-        self.lin.reset_parameters()
         #nn.init.normal_(self.node_embedding.weight, std=0.1)
-        nn.init.kaiming_normal_(self.node_embedding.weight, nonlinearity='relu')
-    
+        
     def forward(self,x):
         #x = self.node_features
         
@@ -89,42 +82,17 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        """ x=F.leaky_relu(self.conv1(x, edge_index))
+        x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=0.5, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
-            x = F.dropout(x, p=0.5, training=self.training) """
-        #x=x+xinit
-        """ x=F.leaky_relu(x)
-        x=F.dropout(x,p=0.32, training=self.training)
-        x=self.conv3(x, edge_index)
-        x=F.leaky_relu(x)  
-        x=F.dropout(x, p=0.32, training=self.training)
-        x=self.conv4(x, edge_index)
-        x=F.leaky_relu(x)
-        x=F.dropout(x, p=0.32, training=self.training)
-        x=self.conv5(x, edge_index)
-        x=F.leaky_relu(x) """
-        
-        x = F.elu(self.gat1(x, edge_index))
-        x = F.dropout(x, p=0.5, training=self.training)
-        x = F.elu(self.gat2(x, edge_index))
-        x = F.dropout(x, p=0.5, training=self.training)
-        x = self.lin(x)
-        x = F.elu(x)
-        x = F.dropout(x, p=0.5, training=self.training)
-        
+            x = F.dropout(x, p=0.5, training=self.training) 
+
     
-        """ x=F.leaky_relu(self.lin1(x))
+        x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=0.5, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
-        x=x+xinit """
-        #x=F.leaky_relu(x)
-        #x=F.dropout(x, p=0.3, training=self.training)
-        """ x=self.lin3(x)
-        x=F.leaky_relu(x)
-        x=F.dropout(x, p=0.3, training=self.training)
-        x=self.lin4(x) """ 
+        x=x+xinit 
                   
         probs = torch.zeros(num_nodes, num_nodes)
         edge_pred = self.edge_pred_net(x, edge_index)
