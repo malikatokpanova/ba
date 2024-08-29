@@ -26,7 +26,8 @@ class ramsey_MPNN(torch.nn.Module):
         self.hidden_channels=hidden_channels
         self.momentum = 0.1
         self.node_embedding = nn.Embedding(num_nodes, num_features)
-        nn.init.normal_(self.node_embedding.weight, std=0.1)
+        nn.init.kaiming_normal_(self.node_embedding.weight, nonlinearity='relu')
+        #nn.init.normal_(self.node_embedding.weight, std=0.1)
         self.numlayers=num_layers
         self.convs=nn.ModuleList()
         for i in range(num_layers - 1):
@@ -48,6 +49,8 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         
+        self.gat1=GATConv(num_features, hidden_channels, heads=heads, dropout=0.3)
+        self.gat2=GATConv(hidden_channels*heads, num_features, heads=heads, dropout=0.3)
         """ self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
         self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) 
         self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
@@ -70,8 +73,10 @@ class ramsey_MPNN(torch.nn.Module):
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
         
-        nn.init.normal_(self.node_embedding.weight, std=0.1)
-        
+        self.gat1.reset_parameters()
+        self.gat2.reset_parameters()
+        #nn.init.normal_(self.node_embedding.weight, std=0.1)
+        nn.init.kaiming_normal_(self.node_embedding.weight, nonlinearity='relu')
     
     def forward(self,x):
         #x = self.node_features
@@ -99,6 +104,10 @@ class ramsey_MPNN(torch.nn.Module):
         x=self.conv5(x, edge_index)
         x=F.leaky_relu(x) """
         
+        x = F.elu(self.gat1(x, edge_index))
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = F.elu(self.gat2(x, edge_index))
+        x = F.dropout(x, p=0.5, training=self.training)
         
     
         """ x=F.leaky_relu(self.lin1(x))
