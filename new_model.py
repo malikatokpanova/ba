@@ -26,18 +26,19 @@ class ramsey_MPNN(torch.nn.Module):
         self.hidden_channels=hidden_channels
         self.momentum = 0.1
         self.node_embedding = nn.Embedding(num_nodes, num_features)
-        nn.init.kaiming_normal_(self.node_embedding.weight, nonlinearity='relu')
-        #nn.init.normal_(self.node_embedding.weight, std=0.1)
         self.numlayers=num_layers
+        
         self.convs=nn.ModuleList()
-        for i in range(num_layers - 1):
-            self.convs.append(GINConv(Sequential(
-            Linear(hidden_channels, hidden_channels),
-            ReLU(),
-            Linear(hidden_channels, hidden_channels),
-            ReLU(),
-            BN(hidden_channels, momentum=self.momentum),
-        ),train_eps=True)) 
+        if num_layers > 1:
+            for i in range(num_layers - 1):
+                self.convs.append(GINConv(Sequential(
+                    Linear(hidden_channels, hidden_channels),
+                    ReLU(),
+                    Linear(hidden_channels, hidden_channels),
+                    ReLU(),
+                    BN(hidden_channels, momentum=self.momentum),
+                ), train_eps=True))
+                
         self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
             ReLU(),
             Linear( hidden_channels,  hidden_channels),
@@ -48,30 +49,18 @@ class ramsey_MPNN(torch.nn.Module):
         self.lin2=Linear(hidden_channels,num_features)
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        
-        """ self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),  BatchNorm1d(hidden_channels),ReLU(), Linear(hidden_channels,hidden_channels), ReLU()))
-        self.conv2 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels,hidden_channels), ReLU())) 
-        self.conv3 = GINConv(Sequential(Linear(hidden_channels, hidden_channels), BatchNorm1d(hidden_channels), ReLU(), Linear(hidden_channels, num_features), ReLU()))
-        
-        self.lin1=Linear(num_features,hidden_channels)
-        self.lin2=Linear(hidden_channels,num_features)  
-        self.lin3 = Linear(hidden_channels, hidden_channels)
-        self.lin4 = Linear(hidden_channels, num_features) """
+    
         
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels) 
         
     def reset_parameters(self):
         self.conv1.reset_parameters()
-        #self.conv2.reset_parameters()
-        #self.conv3.reset_parameters()
-        
         for conv in self.convs:
             conv.reset_parameters() 
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
         
-        #nn.init.normal_(self.node_embedding.weight, std=0.1)
         
     def forward(self,x):
         #x = self.node_features

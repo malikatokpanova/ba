@@ -87,17 +87,6 @@ threshold=0.0005
 
 #train
 def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_features, learning_rate_1,learning_rate_2, epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s):
-
-
-    """ net=ramsey_MPNN(num_nodes, hidden_channels,num_features)
-    #net.reset_parameters()    
-    #net.train()
-    
-    #optimizer = Adam(net.parameters(), lr=learning_rate, weight_decay=0.00000)
-    params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
-    optimizer_1=Adam(params, lr=learning_rate_1, weight_decay=0.0)
-    optimizer_2= Adam(net.edge_pred_net.parameters(), lr=learning_rate_2, weight_decay=0.0) """
-    
     
     net.train()
     wandb.watch(net,log='all',log_freq=10)
