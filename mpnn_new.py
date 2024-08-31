@@ -71,11 +71,11 @@ clique_r=graph_parameters['clique_r']
 clique_s=graph_parameters['clique_s']
 
 
-lr_decay_step_size = 10
+lr_decay_step_size = 20
 lr_decay_factor = 0.95
 
 
-epochs = 300
+epochs = 400
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
@@ -99,11 +99,11 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
             edge_drop_p = edge_drop_p*edge_dropout_decay
             print("Edge_dropout: ", edge_drop_p) """
 
-        """ if epoch % lr_decay_step_size == 0:
+        if epoch % lr_decay_step_size == 0:
             for param_group in optimizer_1.param_groups:
                     param_group['lr'] = lr_decay_factor * param_group['lr']
             for param_group in optimizer_2.param_groups:
-                    param_group['lr'] = lr_decay_factor * param_group['lr']  """
+                    param_group['lr'] = lr_decay_factor * param_group['lr']
                     
         count += 1 
         
@@ -190,7 +190,7 @@ ax.text(0.82, 0.95, textstr, transform=ax.transAxes, fontsize=14,
 plt.savefig(f'loss_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.png')
 plt.close    
 """   
-def mc_sampling_new(probs, num_samples):
+""" def mc_sampling_new(probs, num_samples):
     samples = torch.zeros(num_samples, *probs.shape)
     
     for i in range(num_samples):
@@ -204,7 +204,7 @@ def optimal_new(all_cliques_r,all_cliques_s,num_samples, samples):
         cost_p=cost(samples[i], all_cliques_r,all_cliques_s)
         costs.scatter_add_(0,torch.tensor([i]),cost_p)
     min_cost, min_index = torch.min(costs,0)
-    return min_cost #samples[min_index]
+    return min_cost #samples[min_index] """
 
 #retrieve deterministically
 def decode_graph(num_nodes,probs,cliques_r,cliques_s):
