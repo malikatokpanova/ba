@@ -25,8 +25,11 @@ class ramsey_MPNN(torch.nn.Module):
         self.num_nodes=num_nodes
         self.hidden_channels=hidden_channels
         self.momentum = 0.1
-        self.node_embedding = nn.Embedding(num_nodes, num_features)
+        #self.node_embedding = nn.Embedding(num_nodes, num_features)
         self.numlayers=num_layers
+        
+        self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
+        self.node_features=nn.init.xavier_normal_(self.node_features)
         
         self.convs=nn.ModuleList()
         if num_layers > 1:
@@ -60,12 +63,12 @@ class ramsey_MPNN(torch.nn.Module):
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
-        
+        nn.init.xavier_normal_(self.node_features)
         
     def forward(self,x):
-        #x = self.node_features
+        x = self.node_features
         
-        x=self.node_embedding.weight
+        #x=self.node_embedding.weight
         num_nodes = x.shape[0]
         edge_index = torch.combinations(torch.arange(self.num_nodes), r=2).t()
         
