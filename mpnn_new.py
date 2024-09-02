@@ -59,7 +59,7 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 13,   
-    'num_cliques':512, 
+    'num_cliques':256, 
     'clique_r':3,
     'clique_s':5
 }
@@ -75,7 +75,7 @@ lr_decay_step_size = 20
 lr_decay_factor = 0.95
 
 
-epochs = 5000
+epochs = 10000
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
@@ -110,10 +110,10 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
             
-        cliques_r=torch.randint(0,num_nodes, (num_cliques, clique_r))
-        cliques_s=torch.randint(0,num_nodes, (num_cliques, clique_s))
-        #cliques_r=random.sample(all_cliques_r.tolist(),num_cliques)
-        #cliques_s=random.sample(all_cliques_s.tolist(),2*num_cliques)
+        #cliques_r=torch.randint(0,num_nodes, (num_cliques, clique_r))
+        #cliques_s=torch.randint(0,num_nodes, (num_cliques, clique_s))
+        cliques_r=random.sample(all_cliques_r.tolist(),num_cliques)
+        cliques_s=random.sample(all_cliques_s.tolist(),2*num_cliques)
         
         cliques_r=torch.tensor(cliques_r,dtype=torch.long).to(device)
         cliques_s=torch.tensor(cliques_s,dtype=torch.long).to(device)
