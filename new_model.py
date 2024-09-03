@@ -29,7 +29,7 @@ class ramsey_MPNN(torch.nn.Module):
         self.numlayers=num_layers
         
         self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.node_features=nn.init.xavier_normal_(self.node_features)
+        self.node_features=nn.init.xavier_uniform_(self.node_features)
         
         self.convs=nn.ModuleList()
         if num_layers > 1:
@@ -63,7 +63,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
-        nn.init.xavier_normal_(self.node_features)
+        nn.init.xavier_uniform_(self.node_features)
         
     def forward(self,x):
         x = self.node_features
