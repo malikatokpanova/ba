@@ -98,7 +98,7 @@ class ramsey_MPNN(torch.nn.Module):
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels):
         super(EdgePredNet, self).__init__() 
-        self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
+        #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), LeakyReLU(), Linear(hidden_channels, 1), torch.nn.Sigmoid())
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
