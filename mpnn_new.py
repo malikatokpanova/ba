@@ -93,7 +93,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         count=0
-        if epoch== 5000:
+        if epoch== 4000:
             net.node_features.requires_grad = False 
         """ if epoch % 5 == 0:
             edge_drop_p = edge_drop_p*edge_dropout_decay
