@@ -27,7 +27,7 @@ class ramsey_MPNN(torch.nn.Module):
         self.momentum = 0.1
         #self.node_embedding = nn.Embedding(num_nodes, num_features)
         self.numlayers=num_layers
-        #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        
         self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         self.node_features=nn.init.xavier_normal_(self.node_features)
         
@@ -103,10 +103,13 @@ class EdgePredNet(torch.nn.Module):
         """ self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
+            Dropout(p=0.5),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
+            Dropout(p=0.5),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
+            Dropout(p=0.5),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
         ) """ 
