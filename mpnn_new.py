@@ -60,7 +60,7 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 13,   
-    'num_cliques':256, 
+    'num_cliques':64, 
     'clique_r':3,
     'clique_s':5
 }
