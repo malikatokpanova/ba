@@ -55,7 +55,6 @@ config=dict(
         lr_2=0.01,
         seed=0,
         num_layers=5,
-        epochs=6000,
 )
 
 graph_parameters={
@@ -80,7 +79,7 @@ retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
  """
-
+epochs=6000
 #for plotting loss values
 train_loss_dict={}
 threshold=0.0005
@@ -93,7 +92,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         count=0
-        if epoch == epochs-2000:
+        if epoch == 4000:
             net.node_features.requires_grad = False 
         """ if epoch % 5 == 0:
             edge_drop_p = edge_drop_p*edge_dropout_decay
@@ -248,7 +247,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
-def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers,epochs):
+def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers):
     results = {}
     results_sampling={}
     num_samples=100
@@ -270,8 +269,8 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
         results[params_key][num_nodes]=results_fin
         """
         wandb.log({"cost": results_fin[1]})#, "coloring":results_fin[0]})
-    torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{epochs}.onnx')
-    wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{epochs}.onnx')
+    torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
+    wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     return results_fin
         
 #results, sets=evaluate(num_nodes, clique_r, clique_s)
@@ -289,12 +288,12 @@ def model_pipeline(hyperparameters):
         
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
         net.to(device)
-        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
+        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
-        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.epochs}.pth')
-        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.epochs}.pth'))
+        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth')
+        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth'))
         
-        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.epochs)
+        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers)
         #print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2))
         
         return net
