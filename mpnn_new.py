@@ -55,6 +55,7 @@ config=dict(
         lr_2=0.01,
         seed=0,
         num_layers=5,
+        epochs=6000,
 )
 
 graph_parameters={
@@ -75,7 +76,6 @@ lr_decay_step_size = 20
 lr_decay_factor = 0.95
 
 
-epochs = 6000
 retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
@@ -93,7 +93,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         count=0
-        if epoch== 4000:
+        if epoch == 4000:
             net.node_features.requires_grad = False 
         """ if epoch % 5 == 0:
             edge_drop_p = edge_drop_p*edge_dropout_decay
@@ -117,6 +117,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         
         cliques_r=torch.tensor(cliques_r,dtype=torch.long).to(device)
         cliques_s=torch.tensor(cliques_s,dtype=torch.long).to(device)
+        #cliques_r=all_cliques_r
+        #cliques_s=all_cliques_s
         #cliques=torch.combinations(torch.arange(num_nodes),clique_r)
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         loss=loss_func(probs,cliques_r,cliques_s)
@@ -287,7 +289,7 @@ def model_pipeline(hyperparameters):
         
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
         net.to(device)
-        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
+        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
         torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth')
         net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth'))
