@@ -55,6 +55,7 @@ config=dict(
         lr_2=0.01,
         seed=0,
         num_layers=5,
+        dropout=0.1
 )
 
 graph_parameters={
@@ -79,7 +80,7 @@ retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
  """
-epochs=6000
+epochs=10000
 #for plotting loss values
 train_loss_dict={}
 threshold=0.0005
@@ -92,7 +93,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         count=0
-        if epoch == 4000:
+        if epoch == 6000:
             net.node_features.requires_grad = False 
         """ if epoch % 5 == 0:
             edge_drop_p = edge_drop_p*edge_dropout_decay
@@ -112,7 +113,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         #cliques_r=torch.randint(0,num_nodes, (num_cliques, clique_r))
         #cliques_s=torch.randint(0,num_nodes, (num_cliques, clique_s))
         cliques_r=random.sample(all_cliques_r.tolist(),num_cliques)
-        cliques_s=random.sample(all_cliques_s.tolist(),2*num_cliques)
+        cliques_s=random.sample(all_cliques_s.tolist(),4*num_cliques)
         
         cliques_r=torch.tensor(cliques_r,dtype=torch.long).to(device)
         cliques_s=torch.tensor(cliques_s,dtype=torch.long).to(device)
@@ -151,7 +152,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
 #torch.manual_seed(0)
 
 def make(config):
-    net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features, config.num_layers).to(device) 
+    net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features, config.num_layers, config.dropout).to(device) 
     net.to(device).reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
     optimizer_1=Adam(params, lr=config.lr_1, weight_decay=0.0)
@@ -290,8 +291,8 @@ def model_pipeline(hyperparameters):
         net.to(device)
         train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
-        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth')
-        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}.pth'))
+        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}.pth')
+        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}.pth'))
         
         evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers)
         #print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2))
