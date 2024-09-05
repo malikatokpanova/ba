@@ -80,7 +80,7 @@ retdict = {}
 """ edge_drop_p = 0.0
 edge_dropout_decay = 0.90
  """
-epochs=5000
+epochs=6000
 #for plotting loss values
 train_loss_dict={}
 threshold=0.0005
