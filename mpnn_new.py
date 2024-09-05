@@ -253,14 +253,12 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
 
     
 def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers):
-    results = {}
-    results_sampling={}
-    num_samples=100
-    #net=ramsey_MPNN(num_nodes, hidden_channels,num_features) 
+
     with torch.no_grad():
         
-        #net.load_state_dict(torch.load(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.pth'))
-        #net.load_state_dict(torch.load(f'model_{num_nodes}_{hidden_channels}_{lr_1}_{lr_2}.pth'))
+        #try
+        net.num_features=net.num_nodes
+        
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
@@ -273,7 +271,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
             
         results[params_key][num_nodes]=results_fin
         """
-        wandb.log({"cost": results_fin[1]})#, "coloring":results_fin[0]})
+        wandb.log({"cost": results_fin[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     return results_fin
