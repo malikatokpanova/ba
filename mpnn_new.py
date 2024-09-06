@@ -1,6 +1,6 @@
 #import numpy as np
 #import matplotlib.pyplot as plt
-from itertools import combinations, chain, islice
+from itertools import combinations, chain
 from itertools import product
 import torch
 import torch.nn as nn
@@ -115,8 +115,6 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         #cliques_r=all_cliques_r
         #cliques_s=all_cliques_s
         
-        #try
-        net.num_features=net.num_nodes
         
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         loss=loss_func(probs,cliques_r,cliques_s)
@@ -247,10 +245,6 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
 def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers):
 
     with torch.no_grad():
-        
-        #try
-        net.num_features=net.num_nodes
-        
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
