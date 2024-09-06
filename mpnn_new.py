@@ -77,9 +77,7 @@ lr_decay_factor = 0.95
 
 
 retdict = {}
-""" edge_drop_p = 0.0
-edge_dropout_decay = 0.90
- """
+
 epochs=6000
 #for plotting loss values
 train_loss_dict={}
@@ -92,20 +90,17 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     wandb.watch(net,log='all',log_freq=10)
     
     for epoch in range(epochs):
-        count=0
+        
         """ if epoch == 6000:
             net.node_features.requires_grad = False  """
-        """ if epoch % 5 == 0:
-            edge_drop_p = edge_drop_p*edge_dropout_decay
-            print("Edge_dropout: ", edge_drop_p) """
 
-        if epoch % lr_decay_step_size == 0:
+        """ if epoch % lr_decay_step_size == 0:
             for param_group in optimizer_1.param_groups:
                     param_group['lr'] = lr_decay_factor * param_group['lr']
             for param_group in optimizer_2.param_groups:
                     param_group['lr'] = lr_decay_factor * param_group['lr']
-                    
-        count += 1 
+                     """
+        
         
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
@@ -119,7 +114,6 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         cliques_s=torch.tensor(cliques_s,dtype=torch.long).to(device)
         #cliques_r=all_cliques_r
         #cliques_s=all_cliques_s
-        #cliques=torch.combinations(torch.arange(num_nodes),clique_r)
         
         #try
         net.num_features=net.num_nodes
@@ -130,9 +124,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         
         if epoch%10==0 or epoch==epochs-1:
             wandb.log({"epoch": epoch, "loss": loss.item()})
-            #print('Epoch: ', epoch, 'loss:', loss.item())
-            #variance=net.node_embedding.weight.detach().cpu().var(dim=0).mean().item()
-            variance=net.node_features.detach().cpu().var(dim=0).mean().item()
+            
+        """    variance=net.node_features.detach().cpu().var(dim=0).mean().item()
             wandb.log({"epoch": epoch, "node embeddings variance": variance})
             
             if variance<threshold:
@@ -142,7 +135,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
                 for param_group in optimizer_1.param_groups:
                     param_group['lr'] *= 0.9
                 for param_group in optimizer_2.param_groups:
-                    param_group['lr'] *= 0.9
+                    param_group['lr'] *= 0.9 """
                     
         torch.nn.utils.clip_grad_norm_(net.parameters(),1)
         
@@ -164,8 +157,7 @@ def make(config):
 
     all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r).to(device) 
     all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s).to(device)
-    #train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
-    #torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}.pth')
+   
     return net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s
 
 #plotting loss
@@ -301,10 +293,11 @@ def model_pipeline(hyperparameters):
         
         return net
     
-#wandb.agent(sweep_id, model_pipeline)
+
 net=model_pipeline(config)
 
 
+#plot the graph
 """ color_dict={0:'red', 1:'blue'}
 
 graph_coloring=nx.Graph()

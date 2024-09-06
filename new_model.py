@@ -52,11 +52,12 @@ class ramsey_MPNN(torch.nn.Module):
             ReLU(),
             BN(hidden_channels, momentum=self.momentum),
         ),train_eps=True)
-        self.lin1=Linear(hidden_channels,hidden_channels)
-        self.lin2=Linear(hidden_channels,num_features)
+        """  self.lin1=Linear(hidden_channels,hidden_channels)
+        self.lin2=Linear(hidden_channels,num_features) """
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-    
+        self.lin1=Linear(num_features,hidden_channels)
+        self.lin2=Linear(hidden_channels,num_features)
         
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels) 
         
@@ -78,17 +79,17 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        x=F.leaky_relu(self.conv1(x, edge_index))
+        """ x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
             x = F.dropout(x, p=self.dropout, training=self.training) 
-
+        """
     
         x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
-        x=x+xinit 
+        #x=x+xinit  
                   
         probs = torch.zeros(num_nodes, num_nodes)
         edge_pred = self.edge_pred_net(x, edge_index)
@@ -103,7 +104,6 @@ class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels):
         super(EdgePredNet, self).__init__() 
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
-        #self.lin = Sequential(Linear(2*num_features, hidden_channels), LeakyReLU(), Linear(hidden_channels, 1), torch.nn.Sigmoid())
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
