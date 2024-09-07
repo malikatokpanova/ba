@@ -78,20 +78,23 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        """ x=F.leaky_relu(self.conv1(x, edge_index))
+        x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
             x = F.dropout(x, p=self.dropout, training=self.training) 
-        """
+        
     
         x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
-        #x=x+xinit  
+        x=x+xinit  
                   
         probs = torch.zeros(num_nodes, num_nodes)
-        edge_pred = self.edge_pred_net(x, edge_index)
+        #edge_pred = self.edge_pred_net(x, edge_index)
+        x_i = x[edge_index[0], :]
+        x_j = x[edge_index[1], :]
+        edge_pred=torch.sigmoid(torch.sum(x_i * x_j, dim=-1))
         
         probs[edge_index[0], edge_index[1]] = edge_pred.squeeze()
         probs[edge_index[1], edge_index[0]] = edge_pred.squeeze() 
@@ -99,6 +102,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         return probs
     
+
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels):
         super(EdgePredNet, self).__init__() 
@@ -112,7 +116,7 @@ class EdgePredNet(torch.nn.Module):
             ReLU(),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
-        ) """ 
+        )  """
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
@@ -134,7 +138,7 @@ class EdgePredNet(torch.nn.Module):
         x_j = x[edge_index[1], :]
         edge_features = torch.cat([x_i, x_j], dim=-1)  
 
-        return self.lin(edge_features)
+        return self.lin(edge_features) 
 
 def loss_func(probs, cliques_r,cliques_s):
     loss = 0
