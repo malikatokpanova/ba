@@ -78,7 +78,7 @@ lr_decay_factor = 0.95
 
 retdict = {}
 
-epochs=10000
+epochs=20000
 #for plotting loss values
 train_loss_dict={}
 threshold=0.0005
@@ -91,8 +91,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         
-        """ if epoch == 6000:
-            net.node_features.requires_grad = False  """
+        if epoch == 10000:
+            net.node_features.requires_grad = False  
 
         """ if epoch % lr_decay_step_size == 0:
             for param_group in optimizer_1.param_groups:
