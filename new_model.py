@@ -163,10 +163,10 @@ def loss_func(probs, cliques_r,cliques_s):
         N=len(cliques_r)+len(cliques_s)
     else:
         N=len(cliques_r) """
-    if cliques_r.size(1) != cliques_s.size(1):
-        N = cliques_r.size(0) + cliques_s.size(0)
-    else:
-        N = cliques_r.size(0)
+    
+        
+    N = cliques_r.size(0) + cliques_s.size(0)
+    
         
     return loss/N
 
