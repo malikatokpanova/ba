@@ -55,7 +55,8 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         self.lin1=Linear(hidden_channels,hidden_channels)
-        self.lin2=Linear(hidden_channels,num_features)
+        self.lin2=Linear(hidden_channels,hidden_channels)
+        self.lin3=Linear(hidden_channels,num_features)
         
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels) 
         
@@ -66,7 +67,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         self.lin1.reset_parameters()
         self.lin2.reset_parameters()
-        
+        self.lin3.reset_parameters()
         
     def forward(self,x):
         x = self.node_features
@@ -86,6 +87,8 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
+        x=F.dropout(x, p=self.dropout, training=self.training)
+        x=self.lin3(x)
         x=x+xinit  
                   
         probs = torch.zeros(num_nodes, num_nodes)
@@ -105,16 +108,6 @@ class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels):
         super(EdgePredNet, self).__init__() 
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
-        """ self.lin = Sequential(
-            Linear(2 * num_features, hidden_channels),
-            ReLU(),
-            Linear(hidden_channels, hidden_channels),
-            ReLU(),
-            Linear(hidden_channels, hidden_channels),
-            ReLU(),
-            Linear(hidden_channels, 1),
-            torch.nn.Sigmoid()
-        )  """
         self.lin = Sequential(
             Linear(2 * num_features, hidden_channels),
             ReLU(),
@@ -122,6 +115,16 @@ class EdgePredNet(torch.nn.Module):
             ReLU(),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
+            Linear(hidden_channels, 1),
+            torch.nn.Sigmoid()
+        ) 
+        """ self.lin = Sequential(
+            Linear(2 * num_features, hidden_channels),
+            ReLU(),
+            Linear(hidden_channels, hidden_channels),
+            ReLU(),
+            Linear(hidden_channels, hidden_channels),
+            ReLU(),
             Linear(hidden_channels, hidden_channels),
             ReLU(),
             Linear(hidden_channels, hidden_channels),
@@ -130,7 +133,7 @@ class EdgePredNet(torch.nn.Module):
             ReLU(),
             Linear(hidden_channels, 1),
             torch.nn.Sigmoid()
-        )
+        ) """
     def forward(self, x, edge_index):
         x_i = x[edge_index[0], :]
         x_j = x[edge_index[1], :]
