@@ -78,7 +78,7 @@ lr_decay_factor = 0.95
 
 retdict = {}
 
-epochs=10000
+epochs=20000
 #for plotting loss values
 train_loss_dict={}
 threshold=0.0005
@@ -91,7 +91,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         
-        if epoch == 6000:
+        if epoch == 10000:
             net.node_features.requires_grad = False  
 
         """ if epoch % lr_decay_step_size == 0:
@@ -229,7 +229,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         
         #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
         #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
+        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initially edge is red
         expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
             
         if expected_obj_0 > expected_obj_1: 
