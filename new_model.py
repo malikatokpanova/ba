@@ -56,7 +56,8 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         self.lin1=Linear(hidden_channels,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
-        self.lin3=Linear(hidden_channels,num_features)
+        self.lin3=Linear(hidden_channels,hidden_channels)
+        self.lin4=Linear(hidden_channels,num_features)
         
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels) 
         
@@ -88,7 +89,9 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
         x=F.dropout(x, p=self.dropout, training=self.training)
-        x=self.lin3(x)
+        x=F.leaky_relu(self.lin3(x))
+        x=F.dropout(x, p=self.dropout, training=self.training)
+        x=self.lin4(x)
         x=x+xinit  
                   
         probs = torch.zeros(num_nodes, num_nodes)
