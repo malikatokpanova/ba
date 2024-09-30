@@ -52,7 +52,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.lin1=Linear(hidden_channels,hidden_channels)
+        self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
@@ -76,11 +76,11 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        x=F.leaky_relu(self.conv1(x, edge_index))
+        """ x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training) 
+            x = F.dropout(x, p=self.dropout, training=self.training)  """
         
     
         x=F.leaky_relu(self.lin1(x))
@@ -141,7 +141,7 @@ def loss_func(probs, cliques_r,cliques_s):
     for clique in cliques_r:   
         edge_indices=torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs[edge_indices[0], edge_indices[1]]
+        edge_probs = probs[edge_indices[0], edge_indices[1],0]
         
         blue_prod = edge_probs.prod()
         
@@ -149,7 +149,7 @@ def loss_func(probs, cliques_r,cliques_s):
     for clique in cliques_s:
         edge_indices=torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs[edge_indices[0], edge_indices[1]]
+        edge_probs = probs[edge_indices[0], edge_indices[1],1]
 
         red_prod = (1 - edge_probs).prod()
     
