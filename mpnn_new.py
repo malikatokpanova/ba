@@ -78,7 +78,7 @@ lr_decay_factor = 0.95
 
 retdict = {}
 
-epochs=1000
+epochs=5000
 
 #for plotting loss values
 train_loss_dict={}
@@ -92,7 +92,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         
-        if epoch == 500:
+        if epoch == 2000:
             net.node_features.requires_grad = False  
 
         """ if epoch % lr_decay_step_size == 0:
@@ -198,7 +198,7 @@ def discretize(probs, cliques_r,cliques_s,threshold=0.5):
                 sets[i, j] = 1  # Edge is blue
                 sets[j, i] = 1
             else:
-                sets[i, j] = 0  # Edge is red
+                sets[i, j] = 0  # edge is red
                 sets[j, i] = 0
     expected_obj_G = cost(sets, cliques_r,cliques_s)
     return sets, expected_obj_G.detach()
