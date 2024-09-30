@@ -149,7 +149,7 @@ def loss_func(probs, cliques_r,cliques_s):
     for clique in cliques_s:
         edge_indices=torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs[edge_indices[0], edge_indices[1],1]
+        edge_probs = probs[edge_indices[0], edge_indices[1],0]
 
         red_prod = (1 - edge_probs).prod()
     
