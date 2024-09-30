@@ -194,7 +194,7 @@ def discretize(probs, cliques_r,cliques_s,threshold=0.5):
     
     for i in range(num_nodes):
         for j in range(i + 1, num_nodes):
-            if probs[i, j] > threshold:  
+            if probs[i, j,0] > threshold:  
                 sets[i, j] = 1  # Edge is blue
                 sets[j, i] = 1
             else:
