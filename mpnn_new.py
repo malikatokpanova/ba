@@ -62,14 +62,15 @@ config=dict(
 graph_parameters={
     'num_nodes': 17,   
     'clique_r':4,
-    'clique_s':4
+    'clique_s':4,
+    'num_classes':2
 }
 
 
 num_nodes=graph_parameters['num_nodes']
 clique_r=graph_parameters['clique_r']
 clique_s=graph_parameters['clique_s']
-
+num_classes=graph_parameters['num_classes']
 
 lr_decay_step_size = 20
 lr_decay_factor = 0.95
@@ -122,9 +123,10 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         
         if epoch%10==0 or epoch==epochs-1:
             wandb.log({"epoch": epoch, "loss": loss.item()})
+            
+        if epoch==epochs-1:
             node_embeddings = net.node_features.detach().cpu().numpy()
             prob_matrix = probs.detach().cpu().numpy()
-            
             node_embeddings_table = wandb.Table(data=node_embeddings.tolist(), columns=[f"feature_{i}" for i in range(node_embeddings.shape[1])])
             prob_matrix_table = wandb.Table(data=prob_matrix.tolist(), columns=[f"node_{i}" for i in range(prob_matrix.shape[1])])
         
@@ -186,21 +188,20 @@ ax.text(0.82, 0.95, textstr, transform=ax.transAxes, fontsize=14,
 plt.savefig(f'loss_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.png')
 plt.close    
 """   
-""" def mc_sampling_new(probs, num_samples):
-    samples = torch.zeros(num_samples, *probs.shape)
+def discretize(probs, cliques_r,cliques_s,threshold=0.5):
+    num_nodes = probs.size(0)
+    sets = torch.zeros(num_nodes, num_nodes, dtype=torch.long, device=probs.device)
     
-    for i in range(num_samples):
-        samples[i] = torch.bernoulli(probs)
-    return samples
-
-def optimal_new(all_cliques_r,all_cliques_s,num_samples, samples): 
-    #samples=mc_sampling(probs,num_samples)
-    costs=torch.zeros(num_samples)
-    for i in range(num_samples):
-        cost_p=cost(samples[i], all_cliques_r,all_cliques_s)
-        costs.scatter_add_(0,torch.tensor([i]),cost_p)
-    min_cost, min_index = torch.min(costs,0)
-    return min_cost #samples[min_index] """
+    for i in range(num_nodes):
+        for j in range(i + 1, num_nodes):
+            if probs[i, j] > threshold:  
+                sets[i, j] = 1  # Edge is blue
+                sets[j, i] = 1
+            else:
+                sets[i, j] = 0  # Edge is red
+                sets[j, i] = 0
+    expected_obj_G = cost(sets, cliques_r,cliques_s)
+    return sets, expected_obj_G.detach()
 
 #retrieve deterministically
 def decode_graph(num_nodes,probs,cliques_r,cliques_s):
@@ -246,7 +247,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
     with torch.no_grad():
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
-        results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
+        #results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
         """ coloring=mc_sampling_new(probs, num_samples)
         results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
         
@@ -256,6 +257,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
             
         results[params_key][num_nodes]=results_fin
         """
+        results_fin = discretize(probs, cliques_r,cliques_s)
         wandb.log({"cost": results_fin[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
