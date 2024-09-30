@@ -125,9 +125,12 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
             node_embeddings = net.node_features.detach().cpu().numpy()
             prob_matrix = probs.detach().cpu().numpy()
             
+            node_embeddings_table = wandb.Table(data=node_embeddings.tolist(), columns=[f"feature_{i}" for i in range(node_embeddings.shape[1])])
+            prob_matrix_table = wandb.Table(data=prob_matrix.tolist(), columns=[f"node_{i}" for i in range(prob_matrix.shape[1])])
+        
             wandb.log({
-                "node_embeddings": node_embeddings,
-                "prob_matrix": prob_matrix
+                "node_embeddings": node_embeddings_table,
+                "prob_matrix": prob_matrix_table
             })
 
                     
