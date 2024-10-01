@@ -192,4 +192,29 @@ def cost(probs, cliques_r,cliques_s):
 
 
 
+""" def loss_func(probs, cliques_r,cliques_s):
+    loss = 0
+    
+    for clique in cliques_r:   
+        edge_indices=torch.combinations(clique, r=2).t()
+        edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
+        edge_probs = probs[edge_indices[0], edge_indices[1],0]
+        
+        blue_prod = edge_probs.prod()
+        
+        loss += blue_prod 
+    for clique in cliques_s:
+        edge_indices=torch.combinations(clique, r=2).t()
+        edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
+        edge_probs = probs[edge_indices[0], edge_indices[1],0]
 
+        red_prod = (1 - edge_probs).prod()
+    
+        loss += red_prod 
+    
+        
+    N = cliques_r.size(0) + cliques_s.size(0)
+    
+        
+    return loss/N
+"""

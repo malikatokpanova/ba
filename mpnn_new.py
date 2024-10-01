@@ -60,8 +60,8 @@ config=dict(
 )
 
 graph_parameters={
-    'num_nodes': 8,   
-    'clique_r':3,
+    'num_nodes': 17,   
+    'clique_r':4,
     'clique_s':4,
     'num_classes':2
 }
@@ -78,7 +78,7 @@ lr_decay_factor = 0.95
 
 retdict = {}
 
-epochs=5000
+epochs=10000
 
 #for plotting loss values
 train_loss_dict={}
@@ -92,7 +92,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         
-        if epoch == 2000:
+        if epoch == 5000:
             net.node_features.requires_grad = False  
 
         """ if epoch % lr_decay_step_size == 0:
@@ -311,4 +311,43 @@ plt.title('Ramsey (3,3)-graph on 5 vertices')
 nx.draw(graph_coloring, pos, edge_color=edge_colors, with_labels=True, node_color='lightgrey', node_size=500)
 
 plt.show()   
+"""
+
+"""#retrieve deterministically when we have two classes
+def decode_graph(num_nodes,probs,cliques_r,cliques_s):
+    edge_index = torch.combinations(torch.arange(num_nodes), r=2).t().to(device)
+    flat_probs = probs[edge_index[0], edge_index[1]]
+    sorted_inds = torch.argsort(flat_probs, descending=True)
+    
+    sets = probs.detach().clone().to(device)
+    
+    for flat_index in sorted_inds:
+        
+        edge = edge_index[:, flat_index]
+        src, dst = edge[0].item(), edge[1].item()
+        
+        graph_probs_0 = sets.clone()
+        graph_probs_1 = sets.clone()
+        
+        
+        graph_probs_0[src, dst] = 0
+        graph_probs_0[dst,src] = 0  
+        
+        graph_probs_1[src, dst] = 1
+        graph_probs_1[dst,src] = 1  
+        
+        
+        #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
+        #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
+        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initially edge is red
+        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
+            
+        if expected_obj_0 > expected_obj_1: 
+            sets[src, dst] = 1  # edge is blue
+            sets[dst,src] = 1  
+        else:
+            sets[src, dst] = 0  # Edge is red
+            sets[dst,src] = 0  
+    expected_obj_G = cost(sets, cliques_r,cliques_s)
+    return sets, expected_obj_G.detach() #returning the coloring and its cost
 """
