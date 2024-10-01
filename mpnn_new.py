@@ -60,8 +60,8 @@ config=dict(
 )
 
 graph_parameters={
-    'num_nodes': 17,   
-    'clique_r':4,
+    'num_nodes': 8,   
+    'clique_r':3,
     'clique_s':4,
     'num_classes':2
 }
@@ -233,7 +233,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
             
         if expected_obj_0 > expected_obj_1: 
-            sets[src, dst] = 1  # Edge is blue
+            sets[src, dst] = 1  # edge is blue
             sets[dst,src] = 1  
         else:
             sets[src, dst] = 0  # Edge is red
@@ -247,7 +247,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
     with torch.no_grad():
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
-        #results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
+        #results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s) !!!
         """ coloring=mc_sampling_new(probs, num_samples)
         results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
         
