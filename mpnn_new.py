@@ -206,7 +206,12 @@ def discretize(probs, cliques_r,cliques_s,threshold=0.5):
 #retrieve deterministically
 def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     edge_index = torch.combinations(torch.arange(num_nodes), r=2).t().to(device)
-    flat_probs = probs[edge_index[0], edge_index[1]]
+    
+    # if we have (n,n,2) tensor
+    class_probs=probs[:,:,0] #taking the probabilities of the blue class
+    
+    #flat_probs = probs[edge_index[0], edge_index[1]]
+    flat_probs = class_probs[edge_index[0], edge_index[1]]
     sorted_inds = torch.argsort(flat_probs, descending=True)
     
     sets = probs.detach().clone().to(device)
@@ -227,10 +232,10 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
         graph_probs_1[dst,src] = 1  
         
         
-        #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
-        #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initially edge is red
-        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
+        expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
+        expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
+        #expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initially edge is red
+        #expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
             
         if expected_obj_0 > expected_obj_1: 
             sets[src, dst] = 1  # edge is blue
@@ -247,7 +252,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
     with torch.no_grad():
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
-        #results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s) !!!
+        results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
         """ coloring=mc_sampling_new(probs, num_samples)
         results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
         
@@ -257,7 +262,7 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
             
         results[params_key][num_nodes]=results_fin
         """
-        results_fin = discretize(probs, cliques_r,cliques_s)
+        #results_fin = discretize(probs, cliques_r,cliques_s)
         wandb.log({"cost": results_fin[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
@@ -313,7 +318,7 @@ nx.draw(graph_coloring, pos, edge_color=edge_colors, with_labels=True, node_colo
 plt.show()   
 """
 
-"""#retrieve deterministically when we have two classes
+"""#retrieve deterministically when we have (n,n) probability tensor
 def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     edge_index = torch.combinations(torch.arange(num_nodes), r=2).t().to(device)
     flat_probs = probs[edge_index[0], edge_index[1]]
