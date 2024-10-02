@@ -12,14 +12,8 @@ from torch.nn import Sequential as Seq, Linear, ReLU, LeakyReLU
 
 from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 
-
-#from torch_geometric.utils import softmax, add_self_loops, remove_self_loops, segregate_self_loops, remove_isolated_nodes, contains_isolated_nodes, add_remaining_self_loops, dropout_adj
-
-
-#from layers.mlp_readout_layer import MLPReadout
-                    
 class ramsey_MPNN(torch.nn.Module):
-    def __init__(self, num_nodes, hidden_channels,num_features,num_layers,dropout,num_classes=2):#num_layers, hidden1, hidden2,mask_prob=0.1):
+    def __init__(self, num_nodes, hidden_channels,num_features,num_layers,dropout,num_classes=2):
         super(ramsey_MPNN, self).__init__()
         self.num_features=num_features
         self.num_nodes=num_nodes
@@ -76,11 +70,11 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        """ x=F.leaky_relu(self.conv1(x, edge_index))
+        x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training)  """
+            x = F.dropout(x, p=self.dropout, training=self.training) 
         
     
         x=F.leaky_relu(self.lin1(x))
