@@ -78,7 +78,7 @@ lr_decay_factor = 0.95
 
 retdict = {}
 
-epochs=20000
+epochs=5000
 
 #for plotting loss values
 train_loss_dict={}
@@ -92,7 +92,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         
-        if epoch == 5000:
+        if epoch == 3000:
             net.node_features.requires_grad = False  
 
         """ if epoch % lr_decay_step_size == 0:
@@ -210,7 +210,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     # if we have (n,n,2) tensor
     class_probs=probs[:,:,0] #taking the probabilities of the blue class
     
-    #flat_probs = probs[edge_index[0], edge_index[1]]
+    #flat_probs = probs[edge_index[0], edge_index[1]] if we have (n,n) tensor
     flat_probs = class_probs[edge_index[0], edge_index[1]]
     sorted_inds = torch.argsort(flat_probs, descending=True)
     
