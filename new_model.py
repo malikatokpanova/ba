@@ -46,7 +46,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.lin1=Linear(num_features,hidden_channels)
+        self.lin1=Linear(hidden_channels,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
@@ -84,7 +84,7 @@ class ramsey_MPNN(torch.nn.Module):
         #x=F.leaky_relu(self.lin3(x))
         #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin4(x)
-        x=x+xinit  
+        x=x+xinit  #skip connection
                   
         #probs = torch.zeros(num_nodes, num_nodes)
         #edge_pred = self.edge_pred_net(x, edge_index)
@@ -100,7 +100,7 @@ class ramsey_MPNN(torch.nn.Module):
         edge_pred = F.softmax(edge_pred, dim=-1)
         
         probs = torch.zeros(num_nodes, num_nodes, self.num_classes, device=x.device)
-        probs[edge_index[0], edge_index[1]] = edge_pred
+        probs[edge_index[0], edge_index[1]] = edge_pred 
         probs[edge_index[1], edge_index[0]] = edge_pred
         return probs
     
@@ -122,10 +122,10 @@ class EdgePredNet(torch.nn.Module):
         self.lin1 = Linear(num_features, hidden_channels)
         self.lin2 = Linear(hidden_channels, num_classes)
     def forward(self, x, edge_index):
-        x_i = x[edge_index[0], :]
-        x_j = x[edge_index[1], :]
+        x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
+        x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
-        edge_pred=self.lin2(F.relu(self.lin1(x_i * x_j)))
+        edge_pred=self.lin2(F.relu(self.lin1(x_i * x_j))) 
         #return self.lin(edge_features) 
         return edge_pred
 
