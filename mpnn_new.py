@@ -214,8 +214,8 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     flat_probs = class_probs[edge_index[0], edge_index[1]]
     sorted_inds = torch.argsort(flat_probs, descending=True)
     
-    sets = probs.detach().clone().to(device)
-    
+    #sets = probs.detach().clone().to(device)
+    sets= class_probs.detach().clone().to(device)
     for flat_index in sorted_inds:
         
         edge = edge_index[:, flat_index]
