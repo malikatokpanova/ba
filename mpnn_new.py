@@ -262,8 +262,8 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
             
         results[params_key][num_nodes]=results_fin
         """
-        #results_fin = discretize(probs, cliques_r,cliques_s)
-        wandb.log({"cost": results_fin[1]})
+        results_fin_thr = discretize(probs, cliques_r,cliques_s)
+        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}.onnx')
     return results_fin
