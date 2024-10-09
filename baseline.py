@@ -24,7 +24,7 @@ random.seed(0)
 num_nodes=17
 num_edges=num_nodes*(num_nodes-1)//2
 input_dim=2
-hidden_dim=128
+hidden_dim=64
 num_classes=2
 clique_r=4
 clique_s=4
@@ -68,7 +68,7 @@ def loss_func(probs, cliques_r, cliques_s,num_classes):
 
 
 def train_model(x, optimizer, clique_r, clique_s,batch_size,num_nodes):
-    num_epochs = 1000
+    num_epochs = 5000
     all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
     
@@ -85,7 +85,7 @@ def train_model(x, optimizer, clique_r, clique_s,batch_size,num_nodes):
         loss.backward()
         optimizer.step()
         
-        if epoch % 10 == 0:  # Print loss every 10 epochs
+        if epoch % 10 == 0:  
             print(f'Epoch: {epoch}, Loss: {loss.item()}')
     
     torch.save(x, 'edges.pth')
@@ -119,8 +119,7 @@ def cost_func(probs, cliques_r, cliques_s):
     
     return cost, edge_classes
     
-#train_model(model, optimizer, clique_r, clique_s, batch_size,num_nodes)    
-    
+
 def evaluate(x, clique_r, clique_s):
     with torch.no_grad():
         x=torch.load('edges.pth')
