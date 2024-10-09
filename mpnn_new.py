@@ -105,9 +105,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         
         optimizer_1.zero_grad()
         optimizer_2.zero_grad()
-            
-        #cliques_r=torch.randint(0,num_nodes, (num_cliques, clique_r))
-        #cliques_s=torch.randint(0,num_nodes, (num_cliques, clique_s))
+        
         cliques_r=random.sample(all_cliques_r.tolist(),num_cliques)
         cliques_s=random.sample(all_cliques_s.tolist(),num_cliques)
         
