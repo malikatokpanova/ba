@@ -92,7 +92,7 @@ class ramsey_MPNN(torch.nn.Module):
             x = F.dropout(x, p=self.dropout, training=self.training) 
         """
         
-        x=MLP(x)
+        x=self.mlp(x)
                   
         #probs = torch.zeros(num_nodes, num_nodes)
         #edge_pred = self.edge_pred_net(x, edge_index)
