@@ -55,8 +55,8 @@ class ramsey_MPNN(torch.nn.Module):
             conv.reset_parameters() 
         
         self.edge_pred_net.lin1.reset_parameters()
-        self.edge_pred_net.lin2.reset_parameters()
-        self.edge_pred_net.lin3.reset_parameters()
+        #self.edge_pred_net.lin2.reset_parameters()
+        #self.edge_pred_net.lin3.reset_parameters()
         self.edge_pred_net.lin4.reset_parameters()
         self.edge_pred_net.lin5.reset_parameters()
         self.edge_pred_net.lin6.reset_parameters()
