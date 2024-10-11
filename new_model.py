@@ -55,7 +55,7 @@ class ramsey_MPNN(torch.nn.Module):
             conv.reset_parameters() 
         
         self.edge_pred_net.lin1.reset_parameters()
-        #self.edge_pred_net.lin2.reset_parameters()
+        self.edge_pred_net.lin2.reset_parameters()
         #self.edge_pred_net.lin3.reset_parameters()
         self.edge_pred_net.lin4.reset_parameters()
         self.edge_pred_net.lin5.reset_parameters()
@@ -109,7 +109,7 @@ class EdgePredNet(torch.nn.Module):
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         self.dropout=dropout
         self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
-        #self.lin2=Linear(hidden_channels,hidden_channels)
+        self.lin2=Linear(hidden_channels,hidden_channels)
         #self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
         self.lin5 = Linear(num_features, hidden_channels)
