@@ -60,6 +60,7 @@ class ramsey_MPNN(torch.nn.Module):
         self.edge_pred_net.lin4.reset_parameters()
         self.edge_pred_net.lin5.reset_parameters()
         self.edge_pred_net.lin6.reset_parameters()
+        self.edge_pred_net.linn.reset_parameters()
         
     def forward(self,x):
         x = self.node_features
@@ -111,6 +112,7 @@ class EdgePredNet(torch.nn.Module):
         self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
+        self.linn=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
         self.lin5 = Linear(num_features, hidden_channels)
         self.lin6 = Linear(hidden_channels, num_classes)
@@ -121,6 +123,8 @@ class EdgePredNet(torch.nn.Module):
         x=F.dropout(x, p=self.dropout, training=self.training)
         x=F.leaky_relu(self.lin3(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
+        x=F.leaky_relu(self.linn(x))
+        x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin4(x)
         x=x+xinit #skip connection
         
