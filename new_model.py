@@ -112,7 +112,7 @@ class EdgePredNet(torch.nn.Module):
         self.lin2=Linear(hidden_channels,hidden_channels)
         #self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
-        self.lin5 = Linear(num_features, hidden_channels)
+        self.lin5 = Linear(2*num_features, hidden_channels)
         self.lin6 = Linear(hidden_channels, num_classes)
     def forward(self, x, edge_index,xinit):
         x=F.leaky_relu(self.lin1(x))
