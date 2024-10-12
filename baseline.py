@@ -138,11 +138,10 @@ def evaluate(x, cliques_r, cliques_s):
 
 
 def make_config(config):
-    optimizer= torch.optim.Adam([x], lr=config.lr)
     cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
     x=torch.randn(num_edges,input_dim, requires_grad=True)
-
+    optimizer= torch.optim.Adam([x], lr=config.lr)
     return optimizer, cliques_r, cliques_s, x
 
 def model_pipeline(hyperparameters):
