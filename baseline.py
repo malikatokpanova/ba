@@ -24,9 +24,9 @@ config=dict(
 )
 
 graph_parameters={
-    'num_nodes': 5,   
-    'clique_r':3,
-    'clique_s':3,
+    'num_nodes': 17,   
+    'clique_r':4,
+    'clique_s':4,
     'num_classes':2
 }
 
@@ -98,7 +98,7 @@ def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
     return loss / N
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
-    num_epochs = 1000
+    num_epochs = 10000
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
@@ -216,32 +216,3 @@ def model_pipeline(hyperparameters):
 cost,sets= model_pipeline(config)
 
 
-""" def visualize_graph(num_nodes, edge_classes, edge_dict):
-    # Create a graph
-    G = nx.Graph()
-    
-    # Add nodes
-    G.add_nodes_from(range(num_nodes))
-    
-    # Add edges with colors
-    edge_colors = []
-    for edge, idx in edge_dict.items():
-        G.add_edge(edge[0], edge[1])
-        if edge_classes[idx] == 1:
-            edge_colors.append('blue')
-        else:
-            edge_colors.append('red')
-    
-    # Draw the graph
-    pos = nx.circular_layout(G)  # positions for all nodes
-    nx.draw(G, pos, edge_color=edge_colors, with_labels=True, node_color='lightgray', node_size=500, font_size=10)
-    plt.show()
-
-
-sets=main()
-
-edge_list = torch.combinations(torch.arange(num_nodes), 2)
-edge_dict = {tuple(edge_list[i].tolist()): i for i in range(edge_list.size(0))}
-edge_dict.update({(edge[1], edge[0]): i for edge, i in edge_dict.items()})
-
-visualize_graph(num_nodes, sets, edge_dict)  """
