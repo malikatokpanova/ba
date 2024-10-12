@@ -98,8 +98,7 @@ def train_model(x, optimizer, clique_r, clique_s,batch_size,num_nodes):
             prob_matrix=wandb.Table(data=probs.tolist(),columns=["red","blue"])
            
             wandb.log({"probs":prob_matrix})
-    
-    torch.save(x, 'edges.pth')
+
     return probs
 
 def cost_func(probs, cliques_r, cliques_s):
@@ -133,7 +132,6 @@ def cost_func(probs, cliques_r, cliques_s):
 
 def evaluate(x, cliques_r, cliques_s):
     with torch.no_grad():
-        x=torch.load('edges.pth')
         probs=F.softmax(x, dim=1)
         cost, sets=cost_func(probs, cliques_r, cliques_s)
         wandb.log({'thresholded_cost':cost})
@@ -156,9 +154,11 @@ def model_pipeline(hyperparameters):
         random.seed(0)
         optimizer, cliques_r, cliques_s = make_config(config)
         train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
+        torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
+        x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
         cost, sets = evaluate(x, cliques_r, cliques_s)
-        print(cost,sets)
-        return 
+        
+        return cost,sets
     
 model_pipeline(config)
 
