@@ -73,10 +73,8 @@ def loss_func(probs, cliques_r, cliques_s,num_classes):
 
 
 
-def train_model(x, optimizer, clique_r, clique_s,batch_size,num_nodes):
+def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
     num_epochs = 1000
-    all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
-    all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
