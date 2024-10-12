@@ -160,7 +160,7 @@ def model_pipeline(hyperparameters):
         
         return cost,sets
     
-model_pipeline(config)
+cost,sets= model_pipeline(config)
 
 
 """ def visualize_graph(num_nodes, edge_classes, edge_dict):
