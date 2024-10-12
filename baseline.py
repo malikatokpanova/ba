@@ -148,13 +148,13 @@ def make_config(config):
     return optimizer, cliques_r, cliques_s
 
 def model_pipeline(hyperparameters):
-    with wandb.init(project="graph-coloring", config=hyperparameters):
+    with wandb.init(project="project", config=hyperparameters):
         config = wandb.config
-        optimizer, cliques_r, cliques_s = make_config(config)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         torch.manual_seed(0)
         random.seed(0)
+        optimizer, cliques_r, cliques_s = make_config(config)
         train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
         cost, sets = evaluate(x, cliques_r, cliques_s)
         print(cost,sets)
