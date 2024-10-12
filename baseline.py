@@ -40,7 +40,6 @@ num_edges=num_nodes*(num_nodes-1)//2
 input_dim=2
 
 
-x=torch.randn(num_edges,input_dim, requires_grad=True)
 
 
 def loss_func(probs, cliques_r, cliques_s,num_classes):
@@ -142,8 +141,9 @@ def make_config(config):
     optimizer= torch.optim.Adam([x], lr=config.lr)
     cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
-    
-    return optimizer, cliques_r, cliques_s
+    x=torch.randn(num_edges,input_dim, requires_grad=True)
+
+    return optimizer, cliques_r, cliques_s, x
 
 def model_pipeline(hyperparameters):
     with wandb.init(project="project", config=hyperparameters):
@@ -152,7 +152,7 @@ def model_pipeline(hyperparameters):
         torch.backends.cudnn.benchmark = False
         torch.manual_seed(0)
         random.seed(0)
-        optimizer, cliques_r, cliques_s = make_config(config)
+        optimizer, cliques_r, cliques_s,x = make_config(config)
         train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
         torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
         x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
