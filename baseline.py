@@ -158,7 +158,7 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
             sets[idx,1] = 0  # Edge is red
     
     expected_obj_G = cost_func(sets, edge_dict, cliques_r, cliques_s)
-    return sets, expected_obj_G.detach()  # Return the coloring and its cost
+    return sets, expected_obj_G  # Return the coloring and its cost
         
     
 
