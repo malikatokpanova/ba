@@ -140,7 +140,7 @@ def evaluate(x, cliques_r, cliques_s):
 def decode_graph(probs, edge_dict, cliques_r, cliques_s):
     class_probs=probs[:,1]
     sorted_id = torch.argsort(class_probs, descending=True)
-    sets = probs.detach().clone()
+    sets = class_probs.detach().clone()
 
     for idx in sorted_id:
         graph_probs_0 = sets.clone()
@@ -150,8 +150,8 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
         graph_probs_1[idx] = 1  # Edge is blue
         
         
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r, cliques_s)  
-        expected_obj_1 = loss_func(graph_probs_1, cliques_r, cliques_s)  
+        expected_obj_0 = cost_func(graph_probs_0, cliques_r, cliques_s)  
+        expected_obj_1 = cost_func(graph_probs_1, cliques_r, cliques_s)  
         
         if expected_obj_0 > expected_obj_1:
             sets[idx] = 1  
