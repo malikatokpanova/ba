@@ -69,12 +69,12 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        x=F.leaky_relu(self.conv1(x, edge_index))
+        """ x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
             x = F.dropout(x, p=self.dropout, training=self.training) 
-        
+        """
         
         """ x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
