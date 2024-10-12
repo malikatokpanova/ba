@@ -12,28 +12,35 @@ from torch.nn import Sequential as Seq, Linear, ReLU, LeakyReLU
 from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 
 import random 
-
+import wandb
 import networkx as nx
 import matplotlib.pyplot as plt
 
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-torch.manual_seed(0)
-random.seed(0)
+config=dict(
+        hidden_dim=64,
+        lr=0.001,
+        seed=0,
+        batch_size=128,
+)
 
-num_nodes=17
+graph_parameters={
+    'num_nodes': 17,   
+    'clique_r':4,
+    'clique_s':4,
+    'num_classes':2
+}
+
+
+num_nodes=graph_parameters['num_nodes']
+clique_r=graph_parameters['clique_r']
+clique_s=graph_parameters['clique_s']
+num_classes=graph_parameters['num_classes']
+
 num_edges=num_nodes*(num_nodes-1)//2
 input_dim=2
-hidden_dim=64
-num_classes=2
-clique_r=4
-clique_s=4
-batch_size=256
+
 
 x=torch.randn(num_edges,input_dim, requires_grad=True)
-
-optimizer= torch.optim.Adam([x], lr=0.001)
-
 
 
 def loss_func(probs, cliques_r, cliques_s,num_classes):
@@ -68,7 +75,7 @@ def loss_func(probs, cliques_r, cliques_s,num_classes):
 
 
 def train_model(x, optimizer, clique_r, clique_s,batch_size,num_nodes):
-    num_epochs = 5000
+    num_epochs = 1000
     all_cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     all_cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
     
@@ -85,8 +92,12 @@ def train_model(x, optimizer, clique_r, clique_s,batch_size,num_nodes):
         loss.backward()
         optimizer.step()
         
-        if epoch % 10 == 0:  
-            print(f'Epoch: {epoch}, Loss: {loss.item()}')
+        if epoch % 10 == 0 or epoch == num_epochs - 1:
+            wandb.log({'epoch': epoch, 'loss': loss.item()})
+        if epoch==num_epochs-1:
+            prob_matrix=wandb.Table(data=probs.tolist(),columns=["red","blue"])
+           
+            wandb.log({"probs":prob_matrix})
     
     torch.save(x, 'edges.pth')
     return probs
@@ -120,22 +131,36 @@ def cost_func(probs, cliques_r, cliques_s):
     return cost, edge_classes
     
 
-def evaluate(x, clique_r, clique_s):
+def evaluate(x, cliques_r, cliques_s):
     with torch.no_grad():
         x=torch.load('edges.pth')
         probs=F.softmax(x, dim=1)
-        cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
-        cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
-        cost=cost_func(probs, cliques_r, cliques_s)
-    return cost
+        cost, sets=cost_func(probs, cliques_r, cliques_s)
+        wandb.log({'thresholded_cost':cost})
+    return cost,sets
 
-def main():
-    probs=train_model(x, optimizer,  clique_r, clique_s, batch_size,num_nodes)
-    print(probs, 'probs')
-    cost , sets= evaluate(x, clique_r, clique_s)
-    print(f'Final cost: {cost}')
-    return sets
-main() 
+
+def make_config(config):
+    optimizer= torch.optim.Adam([x], lr=config.lr)
+    cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
+    cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
+    
+    return optimizer, cliques_r, cliques_s
+
+def model_pipeline(hyperparameters):
+    with wandb.init(project="graph-coloring", config=hyperparameters):
+        config = wandb.config
+        optimizer, cliques_r, cliques_s = make_config(config)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        torch.manual_seed(0)
+        random.seed(0)
+        train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
+        cost, sets = evaluate(x, cliques_r, cliques_s)
+        print(cost,sets)
+        return 
+    
+model_pipeline(config)
 
 
 """ def visualize_graph(num_nodes, edge_classes, edge_dict):
