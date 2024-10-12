@@ -98,7 +98,7 @@ def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes)
 
     return probs
 
-def cost_func(probs,edge_classes, edge_dict, cliques_r, cliques_s):
+def cost_func(edge_classes, edge_dict, cliques_r, cliques_s):
     cost = 0
     
     for clique in cliques_r:
@@ -131,7 +131,7 @@ def evaluate(x, cliques_r, cliques_s):
         edge_dict.update({(edge[1], edge[0]): i for edge, i in edge_dict.items()})
 
         sets = torch.argmax(probs, dim=1)
-        thresholded_cost = cost_func(probs, sets,edge_dict, cliques_r, cliques_s)
+        thresholded_cost = cost_func(sets,edge_dict, cliques_r, cliques_s)
         sets, cost= decode_graph(probs, edge_dict, cliques_r, cliques_s)
         wandb.log({'thresholded_cost':thresholded_cost, 'cost':cost})  
     return thresholded_cost, sets
@@ -156,7 +156,7 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
         else:
             sets[idx] = 0  # Edge is red
     
-    expected_obj_G = cost_func(sets, cliques_r, cliques_s)
+    expected_obj_G = cost_func(sets, edge_dict, cliques_r, cliques_s)
     return sets, expected_obj_G.detach()  # Return the coloring and its cost
         
     
