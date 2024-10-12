@@ -141,8 +141,6 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
     sorted_id = torch.argsort(probs[:, 1], descending=True)
     sets = probs.detach().clone()
     for idx in sorted_id:
-        edge = edge_dict[idx]
-        src, dst = edge[0], edge[1]
         
         graph_probs_0 = sets.clone()
         graph_probs_1 = sets.clone()
