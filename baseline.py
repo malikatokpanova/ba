@@ -71,7 +71,31 @@ def loss_func(probs, cliques_r, cliques_s,num_classes=2):
     
     return loss / N
 
-
+def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
+    loss = 0
+    edge_list = torch.combinations(torch.arange(num_nodes), 2)
+    #dict to map edge to index
+    edge_dict = {tuple(edge_list[i].tolist()): i for i in range(edge_list.size(0))} 
+    edge_dict.update({(edge[1], edge[0]): i for edge, i in edge_dict.items()}) #add reverse edges
+    
+    for clique in cliques_r:
+        #get all edges in the clique
+        clique_edge=torch.combinations(clique, r=2).t()
+        edge_indices = [edge_dict[tuple(edge.tolist())] for edge in clique_edge.t()] #get indices of edges in the clique
+        edge_probs = probs_blue[edge_indices] #get probabilities of edges in the clique
+        blue_prod = edge_probs.prod()
+        loss += blue_prod
+        
+    for clique in cliques_s:
+        clique_edge=torch.combinations(clique, r=2).t()
+        edge_indices = [edge_dict[tuple(edge.tolist())] for edge in clique_edge.t()]
+        edge_probs = probs_blue[edge_indices]
+        red_prod = (1-edge_probs).prod()
+        loss += red_prod
+    
+    N = cliques_r.size(0) + cliques_s.size(0)
+    
+    return loss / N
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
     num_epochs = 1000
@@ -150,8 +174,8 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
         graph_probs_1[idx] = 1  # Edge is blue
         
         
-        expected_obj_0 = cost_func(graph_probs_0, cliques_r, cliques_s)  
-        expected_obj_1 = cost_func(graph_probs_1, cliques_r, cliques_s)  
+        expected_obj_0 = cost_soft(graph_probs_0, cliques_r, cliques_s)  
+        expected_obj_1 = cost_soft(graph_probs_1, cliques_r, cliques_s)  
         
         if expected_obj_0 > expected_obj_1:
             sets[idx] = 1  
