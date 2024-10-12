@@ -14,7 +14,7 @@ from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 import random 
 import wandb
 import networkx as nx
-import matplotlib.pyplot as plt
+
 
 config=dict(
         hidden_dim=64,
