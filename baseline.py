@@ -146,19 +146,19 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
         graph_probs_0 = sets.clone()
         graph_probs_1 = sets.clone()
         
-        graph_probs_0[idx,0] = 0  # Edge is red
-        graph_probs_1[idx,1] = 1  # Edge is blue
+        graph_probs_0[idx] = 0  # Edge is red
+        graph_probs_1[idx] = 1  # Edge is blue
         
         
         expected_obj_0 = loss_func(graph_probs_0, cliques_r, cliques_s)  
         expected_obj_1 = loss_func(graph_probs_1, cliques_r, cliques_s)  
         
         if expected_obj_0 > expected_obj_1:
-            sets[idx,0] = 1  
-            sets[idx,1] = 0  
+            sets[idx] = 1  
+            
         else:
-            sets[idx,0] = 0 
-            sets[idx,1] = 1  
+            sets[idx] = 0 
+
     
     expected_obj_G = cost_func(sets, edge_dict, cliques_r, cliques_s)
     return sets, expected_obj_G  # Return the coloring and its cost
