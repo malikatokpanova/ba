@@ -98,7 +98,7 @@ def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
     return loss / N
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
-    num_epochs = 10000
+    num_epochs = 20000
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
