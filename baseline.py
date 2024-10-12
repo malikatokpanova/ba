@@ -42,7 +42,7 @@ input_dim=2
 
 
 
-def loss_func(probs, cliques_r, cliques_s,num_classes):
+def loss_func(probs, cliques_r, cliques_s,num_classes=2):
     loss = 0
     edge_list = torch.combinations(torch.arange(num_nodes), 2)
     #dict to map edge to index
@@ -74,7 +74,7 @@ def loss_func(probs, cliques_r, cliques_s,num_classes):
 
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
-    num_epochs = 20000
+    num_epochs = 1000
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
