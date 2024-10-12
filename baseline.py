@@ -98,14 +98,9 @@ def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes)
 
     return probs
 
-def cost_func(probs, cliques_r, cliques_s):
+def cost_func(probs,edge_classes, edge_dict, cliques_r, cliques_s):
     cost = 0
-    edge_list = torch.combinations(torch.arange(num_nodes), 2)
-    # dict to map edge to index
-    edge_dict = {tuple(edge_list[i].tolist()): i for i in range(edge_list.size(0))}
-    edge_dict.update({(edge[1], edge[0]): i for edge, i in edge_dict.items()})
-
-    edge_classes = torch.argmax(probs, dim=1)
+    
     for clique in cliques_r:
         clique_edge = torch.combinations(clique, r=2).t()
         edge_indices = [edge_dict[tuple(edge.tolist())] for edge in clique_edge.t()]
@@ -124,15 +119,50 @@ def cost_func(probs, cliques_r, cliques_s):
             red_prod = red_edges.prod()
             cost += red_prod
     
-    return cost, edge_classes
+    return cost
     
 
 def evaluate(x, cliques_r, cliques_s):
     with torch.no_grad():
         probs=F.softmax(x, dim=1)
-        cost, sets=cost_func(probs, cliques_r, cliques_s)
-        wandb.log({'thresholded_cost':cost})
-    return cost,sets
+        edge_list = torch.combinations(torch.arange(num_nodes), 2)
+        # dict to map edge to index
+        edge_dict = {tuple(edge_list[i].tolist()): i for i in range(edge_list.size(0))}
+        edge_dict.update({(edge[1], edge[0]): i for edge, i in edge_dict.items()})
+
+        sets = torch.argmax(probs, dim=1)
+        thresholded_cost = cost_func(probs, sets,edge_dict, cliques_r, cliques_s)
+        sets, cost= decode_graph(probs, edge_dict, cliques_r, cliques_s)
+        wandb.log({'thresholded_cost':thresholded_cost, 'cost':cost})  
+    return thresholded_cost, sets
+
+#retrieve determinstically
+def decode_graph(probs, edge_dict, cliques_r, cliques_s):
+    sorted_id = torch.argsort(probs[:, 1], descending=True)
+    sets = probs.detach().clone()
+    for idx in sorted_id:
+        edge = edge_dict[idx]
+        src, dst = edge[0], edge[1]
+        
+        graph_probs_0 = sets.clone()
+        graph_probs_1 = sets.clone()
+        
+        graph_probs_0[idx] = 0  # Edge is red
+        graph_probs_1[idx] = 1  # Edge is blue
+        
+        expected_obj_0 = loss_func(graph_probs_0, cliques_r, cliques_s)  # Edge is red
+        expected_obj_1 = loss_func(graph_probs_1, cliques_r, cliques_s)  # Edge is blue
+        
+        if expected_obj_0 > expected_obj_1:
+            sets[idx] = 1  # Edge is blue
+        else:
+            sets[idx] = 0  # Edge is red
+    
+    expected_obj_G = cost_func(sets, cliques_r, cliques_s)
+    return sets, expected_obj_G.detach()  # Return the coloring and its cost
+        
+    
+
 
 
 def make_config(config):
@@ -147,8 +177,8 @@ def model_pipeline(hyperparameters):
         config = wandb.config
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
-        torch.manual_seed(0)
-        random.seed(0)
+        torch.manual_seed(config.seed)
+        random.seed(config.seed)
         optimizer, cliques_r, cliques_s,x = make_config(config)
         train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
         torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
