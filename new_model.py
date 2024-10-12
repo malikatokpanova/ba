@@ -108,7 +108,8 @@ class EdgePredNet(torch.nn.Module):
         super(EdgePredNet, self).__init__() 
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         self.dropout=dropout
-        self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
+        #self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
+        self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
