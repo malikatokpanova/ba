@@ -74,7 +74,7 @@ def loss_func(probs, cliques_r, cliques_s,num_classes):
 
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
-    num_epochs = 1000
+    num_epochs = 20000
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
@@ -154,8 +154,8 @@ def model_pipeline(hyperparameters):
         torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
         x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
         cost, sets = evaluate(x, cliques_r, cliques_s)
-        
-        return cost,sets
+        print(cost, sets)
+        return 
     
 cost,sets= model_pipeline(config)
 
