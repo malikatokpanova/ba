@@ -69,12 +69,14 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        """ x=F.leaky_relu(self.conv1(x, edge_index))
+        x=F.leaky_relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.leaky_relu(conv(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training) 
-        """
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        # add additional GNN layer
+    
+        
         
         """ x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
@@ -108,8 +110,8 @@ class EdgePredNet(torch.nn.Module):
         super(EdgePredNet, self).__init__() 
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         self.dropout=dropout
-        #self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
-        self.lin1=Linear(num_features,hidden_channels)
+        self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
+        #self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
@@ -118,10 +120,10 @@ class EdgePredNet(torch.nn.Module):
     def forward(self, x, edge_index,xinit):
         x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
-        x=F.leaky_relu(self.lin2(x)) 
-        x=F.dropout(x, p=self.dropout, training=self.training)
-        x=F.leaky_relu(self.lin3(x))
-        x=F.dropout(x, p=self.dropout, training=self.training) 
+        #x=F.leaky_relu(self.lin2(x)) 
+        #x=F.dropout(x, p=self.dropout, training=self.training)
+        """ x=F.leaky_relu(self.lin3(x))
+        x=F.dropout(x, p=self.dropout, training=self.training)  """
         x=self.lin4(x)
         x=x+xinit #skip connection
         
