@@ -17,7 +17,6 @@ import networkx as nx
 
 
 config=dict(
-        hidden_dim=64,
         lr=0.001,
         seed=0,
         batch_size=3,
@@ -207,8 +206,8 @@ def model_pipeline(hyperparameters):
         random.seed(config.seed)
         optimizer, cliques_r, cliques_s,x = make_config(config)
         train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
-        torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
-        x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.hidden_dim}.pth')
+        torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}.pth')
+        x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}.pth')
         cost, sets = evaluate(x, cliques_r, cliques_s)
         print(cost, sets)
         return 
