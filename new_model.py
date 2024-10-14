@@ -130,7 +130,10 @@ class EdgePredNet(torch.nn.Module):
         x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
-        edge_pred=self.lin6(F.relu(self.lin5(x_i * x_j))) 
+        #edge_pred=self.lin6(F.relu(self.lin5(x_i * x_j))) 
+        edge_pred= F.relu(self.lin5(x_i * x_j))
+        edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
+        edge_pred = self.lin6(edge_pred)
         return edge_pred
 
 def loss_func(probs, cliques_r,cliques_s):
