@@ -20,6 +20,7 @@ config=dict(
         lr=0.001,
         seed=0,
         batch_size=3,
+        epochs=10000,
 )
 
 graph_parameters={
@@ -96,8 +97,8 @@ def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
     
     return loss / N
 
-def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
-    num_epochs = 10000
+def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes,num_epochs):
+    #num_epochs = 10000
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
@@ -206,9 +207,9 @@ def model_pipeline(hyperparameters):
         torch.manual_seed(config.seed)
         random.seed(config.seed)
         optimizer, cliques_r, cliques_s,x = make_config(config)
-        train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes)
-        torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}.pth')
-        x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}.pth')
+        train_model(x, optimizer, cliques_r, cliques_s, config.batch_size,num_nodes, config.epochs)
+        torch.save(x,f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.epochs}.pth')
+        x=torch.load(f'baseline_{num_nodes}_{config.seed}_{config.batch_size}_{config.lr}_{config.epochs}.pth')
         cost, sets = evaluate(x, cliques_r, cliques_s)
         print(cost, sets)
         return 
