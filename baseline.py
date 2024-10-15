@@ -97,7 +97,7 @@ def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
     return loss / N
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes):
-    num_epochs = 30000
+    num_epochs = 1000
     
     for epoch in range(num_epochs):
         optimizer.zero_grad()
@@ -193,7 +193,8 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
 def make_config(config):
     cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
-    x=torch.randn(num_edges,input_dim, requires_grad=True)
+    #x=torch.randn(num_edges,input_dim, requires_grad=True) #normal distribution
+    x=torch.rand(num_edges,num_classes, requires_grad=True) # uniform distribution
     optimizer= torch.optim.Adam([x], lr=config.lr)
     return optimizer, cliques_r, cliques_s, x
 
