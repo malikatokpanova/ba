@@ -22,7 +22,7 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_embedding = nn.Embedding(num_nodes, num_features)
         self.numlayers=num_layers
         self.dropout=dropout
-        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=False) 
         self.num_classes=num_classes
         
         self.convs=nn.ModuleList()
@@ -115,7 +115,7 @@ class EdgePredNet(torch.nn.Module):
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
-        self.lin5 = Linear(1, hidden_channels)
+        self.lin5 = Linear(num_features, hidden_channels)
         self.lin6 = Linear(hidden_channels, num_classes)
     def forward(self, x, edge_index,xinit):
         #x=F.leaky_relu(self.lin1(x))
@@ -130,8 +130,8 @@ class EdgePredNet(torch.nn.Module):
         x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
-        #edge_pred= F.relu(self.lin5(x_i * x_j))
-        edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
+        edge_pred= F.relu(self.lin5(x_i * x_j))
+        #edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
         edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
         edge_pred = self.lin6(edge_pred)
         return edge_pred

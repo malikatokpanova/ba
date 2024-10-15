@@ -78,7 +78,7 @@ lr_decay_factor = 0.1
 
 retdict = {}
 
-epochs=1000
+epochs=10000
 
 #for plotting loss values
 train_loss_dict={}
