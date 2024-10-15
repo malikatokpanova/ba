@@ -46,7 +46,10 @@ class ramsey_MPNN(torch.nn.Module):
         
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        
+        self.lin1=Linear(num_features,hidden_channels)
+        self.lin2=Linear(hidden_channels,hidden_channels)
+        self.lin3=Linear(hidden_channels,hidden_channels)
+        self.lin4=Linear(hidden_channels,num_features)
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
     def reset_parameters(self):
@@ -54,10 +57,10 @@ class ramsey_MPNN(torch.nn.Module):
         for conv in self.convs:
             conv.reset_parameters() 
         
-        self.edge_pred_net.lin1.reset_parameters()
+        """ self.edge_pred_net.lin1.reset_parameters()
         self.edge_pred_net.lin2.reset_parameters()
         self.edge_pred_net.lin3.reset_parameters()
-        self.edge_pred_net.lin4.reset_parameters()
+        self.edge_pred_net.lin4.reset_parameters() """
         self.edge_pred_net.lin5.reset_parameters()
         self.edge_pred_net.lin6.reset_parameters()
         
@@ -78,14 +81,14 @@ class ramsey_MPNN(torch.nn.Module):
     
         
         
-        """ x=F.leaky_relu(self.lin1(x))
+        x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
         x=F.dropout(x, p=self.dropout, training=self.training)
         #x=F.leaky_relu(self.lin3(x))
         #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin4(x)
-        x=x+xinit """  #skip connection
+        x=x+xinit  #skip connection
                   
 
         """ x_i = x[edge_index[0], :]
@@ -111,10 +114,10 @@ class EdgePredNet(torch.nn.Module):
         #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
         self.dropout=dropout
         #self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
-        self.lin1=Linear(num_features,hidden_channels)
+        """ self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
-        self.lin4=Linear(hidden_channels,num_features)
+        self.lin4=Linear(hidden_channels,num_features) """
         self.lin5 = Linear(num_features, hidden_channels)
         self.lin6 = Linear(hidden_channels, num_classes)
     def forward(self, x, edge_index,xinit):
@@ -132,7 +135,7 @@ class EdgePredNet(torch.nn.Module):
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
         edge_pred= F.relu(self.lin5(x_i * x_j))
         #edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
-        edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
+        #edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
         edge_pred = self.lin6(edge_pred)
         return edge_pred
 
