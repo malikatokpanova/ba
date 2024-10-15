@@ -53,7 +53,7 @@ class ramsey_MPNN(torch.nn.Module):
         
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.lin1=Linear(num_features,hidden_channels)
+        self.lin1=Linear(hidden_channels,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
