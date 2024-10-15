@@ -99,7 +99,7 @@ def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes,num_epochs):
     #num_epochs = 10000
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.1)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.001)
     for epoch in range(num_epochs):
         optimizer.zero_grad()
         
