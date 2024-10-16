@@ -20,7 +20,7 @@ config=dict(
         lr=0.001,
         seed=0,
         batch_size=3,
-        epochs=10000,
+        epochs=50000,
 )
 
 graph_parameters={
