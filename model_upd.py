@@ -129,6 +129,7 @@ def loss_func(probs_r,probs_s,cliques_r,cliques_s):
     for i, clique in enumerate(cliques_r):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
+        print(probs_r[i])
         edge_probs = probs_r[i][:,0] #selecting probabilities for blue
         
         blue_prod = edge_probs.prod()
