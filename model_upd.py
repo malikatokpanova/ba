@@ -69,19 +69,24 @@ class ramsey_MPNN(torch.nn.Module):
         # for each batch, filter the nodes in the clique
         cliques_r_embed=x[cliques_r]
         # get all edges in the clique
-        edge_r=torch.combinations(cliques_r, r=2).t()
+        #edge_r=torch.combinations(cliques_r, r=2).t()
         #same for a batch of cliques of size s
         cliques_s_embed=x[cliques_s]
-        edge_s=torch.combinations(cliques_s, r=2).t()
+        #edge_s=torch.combinations(cliques_s, r=2).t()
         
                   
         edge_probs_r = []
-        for clique, idx in zip(cliques_r_embed,edge_r):
+        for clique,edge in zip(cliques_r_embed,cliques_r):
+            idx=torch.combinations(edge, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
             edge_probs_r.append(F.softmax(self.edge_pred_net(clique,idx), dim=-1))
 
         edge_probs_s = []
-        for clique,idx in zip(cliques_s_embed,edge_s):
+        """  for clique,idx in zip(cliques_s_embed,edge_s):
+            edge_probs_s.append(F.softmax(self.edge_pred_net(clique,idx), dim=-1)) """
+        for clique, edge in zip(cliques_s_embed, cliques_s):
+            idx=torch.combinations(edge, r=2).t()
+            # passing the clique embedding and the edge indices to the edge prediction network
             edge_probs_s.append(F.softmax(self.edge_pred_net(clique,idx), dim=-1))
 
         return torch.stack(edge_probs_r), torch.stack(edge_probs_s) #probabilities for all the edges in the batch of cliques
