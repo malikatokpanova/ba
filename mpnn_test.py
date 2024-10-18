@@ -19,7 +19,7 @@ from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 
 import random
 from random import sample
-from new_model import ramsey_MPNN, loss_func, cost
+from model_upd import ramsey_MPNN, loss_func, cost
 
 import wandb
 
