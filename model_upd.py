@@ -76,20 +76,18 @@ class ramsey_MPNN(torch.nn.Module):
         
                   
         edge_probs_r = []
-        for clique,edge in zip(cliques_r_embed,cliques_r):
-            idx=torch.combinations(edge, r=2).t()
-            print(clique)
-            print(edge)
+        for clique,node in zip(cliques_r_embed,cliques_r):
+            idx=torch.combinations(node, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
-            edge_probs_r.append(F.softmax(self.edge_pred_net(clique,idx), dim=-1))
+            edge_probs_r.append(F.softmax(self.edge_pred_net(clique,idx, node), dim=-1))
 
         edge_probs_s = []
         """  for clique,idx in zip(cliques_s_embed,edge_s):
             edge_probs_s.append(F.softmax(self.edge_pred_net(clique,idx), dim=-1)) """
-        for clique, edge in zip(cliques_s_embed, cliques_s):
-            idx=torch.combinations(edge, r=2).t()
+        for clique, node in zip(cliques_s_embed, cliques_s):
+            idx=torch.combinations(node, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
-            edge_probs_s.append(F.softmax(self.edge_pred_net(clique,idx), dim=-1))
+            edge_probs_s.append(F.softmax(self.edge_pred_net(clique,idx,node), dim=-1))
 
         return torch.stack(edge_probs_r), torch.stack(edge_probs_s) #probabilities for all the edges in the batch of cliques
 
@@ -106,7 +104,7 @@ class EdgePredNet(torch.nn.Module):
         self.lin4=Linear(hidden_channels,num_features) """
         self.lin5 = Linear(num_features, hidden_channels)
         self.lin6 = Linear(hidden_channels, num_classes)
-    def forward(self, x, edge_index):
+    def forward(self, x, idx,node):
         """ xinit=x.clone()
         x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
@@ -116,7 +114,8 @@ class EdgePredNet(torch.nn.Module):
         #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin4(x)
         x=x+xinit #skip connection """
-        print(edge_index[0])
+        index_mapping = {original_idx.item(): pos for pos, original_idx in enumerate(node)}
+        edge_index = torch.tensor([index_mapping[idx.item()] for idx in node])
         x_i = x[edge_index[0]] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1]] #edge_index[1] contains the target nodes
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
