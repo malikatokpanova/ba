@@ -244,7 +244,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
-def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers):
+def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers,dropout,num_cliques):
 
     with torch.no_grad():
         net.eval()
