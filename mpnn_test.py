@@ -94,8 +94,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         #cliques_s=all_cliques_s
         
         
-        probs=net(torch.randn(net.num_nodes, net.num_features).to(device), cliques_r.to(device),cliques_s.to(device))
-        loss=loss_func(probs,cliques_r,cliques_s)
+        probs_r,probs_s=net(torch.randn(net.num_nodes, net.num_features).to(device), cliques_r.to(device),cliques_s.to(device))
+        loss=loss_func(probs_r,probs_s,cliques_r,cliques_s)
         loss.backward()
         
         if epoch%10==0 or epoch==epochs-1:
@@ -103,13 +103,15 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
             
         if epoch==epochs-1:
             node_embeddings = net.node_features.detach().cpu().numpy()
-            prob_matrix = probs.detach().cpu().numpy()
+            probs_r_matrix = probs_r.detach().cpu().numpy()
+            probs_s_matrix = probs_s.detach().cpu().numpy()
             node_embeddings_table = wandb.Table(data=node_embeddings.tolist(), columns=[f"feature_{i}" for i in range(node_embeddings.shape[1])])
-            prob_matrix_table = wandb.Table(data=prob_matrix.tolist(), columns=[f"node_{i}" for i in range(prob_matrix.shape[1])])
-        
+            probs_r_matrix_table = wandb.Table(data=probs_r_matrix.tolist(), columns=[f"node_{i}" for i in range(prob_matrix.shape[1])])
+            probs_s_matrix_table = wandb.Table(data=probs_s_matrix.tolist(), columns=[f"node_{i}" for i in range(prob_matrix.shape[1])])
             wandb.log({
                 "node_embeddings": node_embeddings_table,
-                "prob_matrix": prob_matrix_table
+                "probs_r_matrix": probs_r_matrix_table,
+                "probs_s_matrix": probs_s_matrix_table
             })
 
                     
@@ -165,9 +167,8 @@ ax.text(0.82, 0.95, textstr, transform=ax.transAxes, fontsize=14,
 plt.savefig(f'loss_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.png')
 plt.close    
 """   
-def discretize(probs, cliques_r,cliques_s,threshold=0.5):
-    num_nodes = probs.size(0)
-    sets = torch.zeros(num_nodes, num_nodes, dtype=torch.long, device=probs.device)
+def discretize(probs_r,probs_s, cliques_r,cliques_s,threshold=0.5,num_nodes=17):
+    sets = torch.zeros(num_nodes, num_nodes, dtype=torch.long)
     
     for i in range(num_nodes):
         for j in range(i + 1, num_nodes):
@@ -228,7 +229,9 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
 
     with torch.no_grad():
         net.eval()
-        probs=net(torch.randn(net.num_nodes, net.num_features).to(device), cliques_r.to(device),cliques_s.to(device))
+        probs_r,probs_s=net(torch.randn(net.num_nodes, net.num_features).to(device), cliques_r.to(device),cliques_s.to(device))
+        print(probs_r,"r")
+        print(probs_s)
         #results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
         """ coloring=mc_sampling_new(probs, num_samples)
         results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
@@ -239,13 +242,13 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
             
         results[params_key][num_nodes]=results_fin
         """
-        results_fin_thr = discretize(probs, cliques_r,cliques_s)
+        results_fin_thr = discretize(probs_r,probs_s, cliques_r,cliques_s)
        # wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
         wandb.log({"thresholded_cost": results_fin_thr[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}.onnx')
     #return results_fin
-    return results_fin_thr, probs
+    return results_fin_thr, probs_r,probs_s
         
 #results, sets=evaluate(num_nodes, clique_r, clique_s)
 
