@@ -129,8 +129,8 @@ def loss_func(probs_r,probs_s,cliques_r,cliques_s):
     for i, clique in enumerate(cliques_r):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        print(probs_r[i])
-        edge_probs = probs_r[i][:,0] #selecting probabilities for blue
+        print(probs_r[:,0])
+        edge_probs = probs_r[:,0] #selecting probabilities for blue
         
         blue_prod = edge_probs.prod()
         
@@ -139,7 +139,7 @@ def loss_func(probs_r,probs_s,cliques_r,cliques_s):
     for i,clique in enumerate(cliques_s):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs_s[i][:,0] #selecting probabilities for blue
+        edge_probs = probs_s[:,0] #selecting probabilities for blue
 
         red_prod = (1 - edge_probs).prod()
         
@@ -164,7 +164,7 @@ def cost(probs_r,probs_s, cliques_r,cliques_s):
     for i, clique in enumerate(cliques_r):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs_r[i][:,0] #selecting probabilities for blue
+        edge_probs = probs_r[:,0] #selecting probabilities for blue
         
         blue_prod = edge_probs.prod()
         
@@ -173,7 +173,7 @@ def cost(probs_r,probs_s, cliques_r,cliques_s):
     for i,clique in enumerate(cliques_s):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs_s[i][:,0] #selecting probabilities for blue
+        edge_probs = probs_s[:,0] #selecting probabilities for blue
 
         red_prod = (1 - edge_probs).prod()
         
