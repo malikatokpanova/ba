@@ -81,7 +81,7 @@ class ramsey_MPNN(torch.nn.Module):
             print(node, "nodes of a clique")
             idx=torch.combinations(node, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
-            #F.softmax(self.edge_pred_net(clique, idx, node), dim=-1)
+            print(F.softmax(self.edge_pred_net(clique, idx, node), dim=-1), "edge_prob_tensor")
             
             break
             #edge_probs_r.append(edge_prob_tensor)
@@ -123,11 +123,12 @@ class EdgePredNet(torch.nn.Module):
         x=x+xinit #skip connection """
         index_mapping = {original_idx.item(): pos for pos, original_idx in enumerate(node)}
         edge_index = torch.tensor([index_mapping[idx.item()] for idx in node])
+        print(edge_index, "edge_index")
         x_i = x[edge_index[0]] #edge_index[0] contains the source nodes
+        print(x_i, "x_i")
         x_j = x[edge_index[1]] #edge_index[1] contains the target nodes
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
         edge_pred=self.lin6(F.relu(self.lin5(x_i * x_j))) 
-        print(edge_pred, "edge_pred")
         return edge_pred
 
 def loss_func(probs_r,probs_s,cliques_r,cliques_s):
