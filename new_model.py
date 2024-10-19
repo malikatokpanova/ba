@@ -47,7 +47,7 @@ class ramsey_MPNN(torch.nn.Module):
             Linear(hidden_channels, hidden_channels),
             ReLU(),
             Linear(hidden_channels, num_features),
-            BN(hidden_channels, momentum=self.momentum),
+            BN(num_features, momentum=self.momentum),
         ), train_eps=True))
             
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
