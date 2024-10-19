@@ -79,7 +79,8 @@ class ramsey_MPNN(torch.nn.Module):
         for clique,node in zip(cliques_r_embed,cliques_r):
             idx=torch.combinations(node, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
-            edge_probs_r.append(torch.stack(F.softmax(self.edge_pred_net(clique,idx, node), dim=-1)))
+            edge_probs_r.append((F.softmax(self.edge_pred_net(clique,idx, node), dim=-1)))
+            print(F.softmax(self.edge_pred_net(clique,idx, node), dim=-1))
 
         edge_probs_s = []
         """  for clique,idx in zip(cliques_s_embed,edge_s):
