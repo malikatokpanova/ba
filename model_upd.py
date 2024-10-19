@@ -79,8 +79,9 @@ class ramsey_MPNN(torch.nn.Module):
         for clique,node in zip(cliques_r_embed,cliques_r):
             idx=torch.combinations(node, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
-            edge_probs_r.append((F.softmax(self.edge_pred_net(clique,idx, node), dim=-1)))
-            print(F.softmax(self.edge_pred_net(clique,idx, node), dim=-1))
+            edge_probs_r_list = [F.softmax(self.edge_pred_net(clique, idx, node), dim=-1)]
+            edge_prob_tensor = torch.stack(edge_probs_r_list)
+            edge_probs_r.append(edge_prob_tensor)
 
         edge_probs_s = []
         """  for clique,idx in zip(cliques_s_embed,edge_s):
@@ -88,7 +89,9 @@ class ramsey_MPNN(torch.nn.Module):
         for clique, node in zip(cliques_s_embed, cliques_s):
             idx=torch.combinations(node, r=2).t()
             # passing the clique embedding and the edge indices to the edge prediction network
-            edge_probs_s.append(F.softmax(self.edge_pred_net(clique,idx,node), dim=-1))
+            edge_probs_s_list=[F.softmax(self.edge_pred_net(clique,idx,node), dim=-1)]
+            edge_prob_tensor = torch.stack(edge_probs_s_list)
+            edge_probs_s.append(edge_prob_tensor)
 
         return torch.stack(edge_probs_r), torch.stack(edge_probs_s) #probabilities for all the edges in the batch of cliques
 
@@ -141,7 +144,7 @@ def loss_func(probs_r,probs_s,cliques_r,cliques_s):
     for i,clique in enumerate(cliques_s):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        edge_probs = probs_s[:,0] #selecting probabilities for blue
+        edge_probs = probs_s[i][:,0] #selecting probabilities for blue
 
         red_prod = (1 - edge_probs).prod()
         
