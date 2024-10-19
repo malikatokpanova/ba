@@ -28,28 +28,28 @@ class ramsey_MPNN(torch.nn.Module):
         self.convs=nn.ModuleList()
         if num_layers > 1:
             for i in range(num_layers - 1):
-                self.convs.append(GCNConv(hidden_channels, hidden_channels))
-                """ self.convs.append(GINConv(Sequential(
+                self.convs.append(GINConv(Sequential(
                     Linear(hidden_channels, hidden_channels),
                     ReLU(),
                     Linear(hidden_channels, hidden_channels),
                     ReLU(),
                     BN(hidden_channels, momentum=self.momentum),
-                ), train_eps=True)) """
+                ), train_eps=True)) 
                 
-        self.conv1 = GCNConv(num_features, hidden_channels)
-        self.bn = BN(hidden_channels, momentum=self.momentum)
-
-        """ self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
+        self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
             ReLU(),
             Linear( hidden_channels,  hidden_channels),
             ReLU(),
             BN(hidden_channels, momentum=self.momentum),
-        ),train_eps=True) """
+        ),train_eps=True) 
         
-        #output layer
-        self.convs.append(GCNConv(hidden_channels, num_features))
-        
+        self.convs.append(GINConv(Sequential(
+            Linear(hidden_channels, hidden_channels),
+            ReLU(),
+            Linear(hidden_channels, num_features),
+            BN(hidden_channels, momentum=self.momentum),
+        ), train_eps=True))
+            
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
         self.lin1=Linear(num_features,hidden_channels)
@@ -63,6 +63,10 @@ class ramsey_MPNN(torch.nn.Module):
         for conv in self.convs:
             conv.reset_parameters() 
         
+        self.lin1.reset_parameters()
+        self.lin2.reset_parameters()
+        self.lin3.reset_parameters()
+        self.lin4.reset_parameters()
         """ self.edge_pred_net.lin1.reset_parameters()
         self.edge_pred_net.lin2.reset_parameters()
         self.edge_pred_net.lin3.reset_parameters()
@@ -82,20 +86,18 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs[:-1]:
             x = F.relu(conv(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training) 
-            x=self.bn(x)
-        # add the final GNN layer
-        x = self.convs[-1](x, edge_index)  
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x=self.convs[-1](x, edge_index)
         
         
-        """ x=F.leaky_relu(self.lin1(x))
+        x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
         x=F.dropout(x, p=self.dropout, training=self.training)
         #x=F.leaky_relu(self.lin3(x))
         #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin4(x)
-        x=x+xinit  #skip connection  """
+        x=x+xinit  #skip connection  
                   
 
         """ x_i = x[edge_index[0], :]
@@ -125,7 +127,7 @@ class EdgePredNet(torch.nn.Module):
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features) """
-        self.lin5 = Linear(num_features, hidden_channels)
+        self.lin5 = Linear(2*num_features, hidden_channels)
         self.lin6 = Linear(hidden_channels, num_classes)
     def forward(self, x, edge_index,xinit):
         #x=F.leaky_relu(self.lin1(x))
@@ -139,8 +141,9 @@ class EdgePredNet(torch.nn.Module):
         
         x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
-        #edge_features = torch.cat([x_i, x_j], dim=-1)  
-        edge_pred= F.relu(self.lin5(x_i * x_j))
+        edge_features = torch.cat([x_i, x_j], dim=-1)  
+        edge_pred= F.relu(self.lin5(edge_features))
+        #edge_pred= F.relu(self.lin5(x_i * x_j))
         #edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
         #edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
         edge_pred = self.lin6(edge_pred)
