@@ -124,13 +124,14 @@ class EdgePredNet(torch.nn.Module):
 
 def loss_func(probs_r,probs_s,cliques_r,cliques_s):
     loss = 0
-    
+    print(probs_r.size())
+    print(probs_r, "probs_r")
     # batch of cliques of size r
     for i, clique in enumerate(cliques_r):
         edge_indices = torch.combinations(clique, r=2).t()
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        print(probs_r)
-        edge_probs = probs_r[:,0] #selecting probabilities for blue
+        
+        edge_probs = probs_r[i][:,0] #selecting probabilities for blue
         
         blue_prod = edge_probs.prod()
         
