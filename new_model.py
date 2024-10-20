@@ -22,7 +22,7 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_embedding = nn.Embedding(num_nodes, num_features)
         self.numlayers=num_layers
         self.dropout=dropout
-        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        self.node_features = torch.nn.Parameter(torch.rand(num_nodes, num_features),requires_grad=True) 
         self.num_classes=num_classes
         
         self.convs=nn.ModuleList()
