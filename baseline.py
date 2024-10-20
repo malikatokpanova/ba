@@ -20,7 +20,7 @@ config=dict(
         lr=0.001,
         seed=0,
         batch_size=3,
-        epochs=100000,
+        epochs=20000,
 )
 
 graph_parameters={
@@ -196,7 +196,7 @@ def make_config(config):
     cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
     #x=torch.randn(num_edges,input_dim, requires_grad=True) #normal distribution
-    x=torch.randn(num_edges,num_classes, requires_grad=True) # uniform distribution
+    x=torch.rand(num_edges,num_classes, requires_grad=True) # uniform distribution
     optimizer= torch.optim.Adam([x], lr=config.lr)
     return optimizer, cliques_r, cliques_s, x
 
