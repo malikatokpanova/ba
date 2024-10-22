@@ -21,6 +21,7 @@ config=dict(
         seed=0,
         batch_size=3,
         epochs=10000,
+        weight_decay=1e-5,
 )
 
 graph_parameters={
