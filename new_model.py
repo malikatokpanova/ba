@@ -55,10 +55,10 @@ class ramsey_MPNN(torch.nn.Module):
         for conv in self.convs:
             conv.reset_parameters() 
         
-        self.lin1.reset_parameters()
+        """ self.lin1.reset_parameters()
         self.lin2.reset_parameters()
         self.lin3.reset_parameters()
-        self.lin4.reset_parameters()
+        self.lin4.reset_parameters() """
         """ self.edge_pred_net.lin1.reset_parameters()
         self.edge_pred_net.lin2.reset_parameters()
         self.edge_pred_net.lin3.reset_parameters()
@@ -83,13 +83,13 @@ class ramsey_MPNN(torch.nn.Module):
         
         
         x=F.leaky_relu(self.lin1(x))
-        #x=F.dropout(x, p=self.dropout, training=self.training) 
+        x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x)) 
-        #x=F.dropout(x, p=self.dropout, training=self.training)
+        x=F.dropout(x, p=self.dropout, training=self.training)
         #x=F.leaky_relu(self.lin3(x))
         #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin4(x)
-        #x=x+xinit  #skip connection
+        x=x+xinit  #skip connection
                   
 
         """ x_i = x[edge_index[0], :]
