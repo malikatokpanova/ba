@@ -57,6 +57,7 @@ config=dict(
         num_layers=5,
         dropout=0.1,
         num_cliques=128,
+        epochs=10000,
 )
 
 graph_parameters={
@@ -78,7 +79,6 @@ lr_decay_factor = 0.1
 
 retdict = {}
 
-epochs=20000
 
 #for plotting loss values
 train_loss_dict={}
@@ -244,7 +244,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
-def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers,dropout,num_cliques):
+def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers,dropout,num_cliques, epochs):
 
     with torch.no_grad():
         net.eval()
@@ -261,8 +261,8 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
         """
         results_fin_thr = discretize(probs, cliques_r,cliques_s)
         wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
-    torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}.onnx')
-    wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}.onnx')
+    torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}.onnx')
+    wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}.onnx')
     return results_fin
         
 #results, sets=evaluate(num_nodes, clique_r, clique_s)
@@ -280,13 +280,13 @@ def model_pipeline(hyperparameters):
         
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
         net.to(device)
-        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  epochs, lr_decay_step_size, lr_decay_factor, clique_r, config.num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
+        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, config.num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
-        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}.pth')
-        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}.pth'))
+        torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}_{config.epochs}.pth')
+        net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}_{config.epochs}.pth'))
         #wandb.save(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}.pth')
-        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques)
-        print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques))
+        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques, config.epochs)
+        print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques, config.epochs))
         
         return net
     
