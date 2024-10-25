@@ -44,7 +44,7 @@ class ramsey_MPNN(torch.nn.Module):
             
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.lin1=Linear(hidden_channels,hidden_channels)
+        self.lin1=Linear(num_features,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
@@ -53,7 +53,7 @@ class ramsey_MPNN(torch.nn.Module):
     def reset_parameters(self):
         self.conv1.reset_parameters()
         for conv in self.convs:
-            conv.reset_parameters() 
+            conv.reset_parameters()  
         
         """ self.lin1.reset_parameters()
         self.lin2.reset_parameters()
@@ -74,11 +74,11 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        x=F.relu(self.conv1(x, edge_index))
+        """ x=F.relu(self.conv1(x, edge_index))
         x=F.dropout(x, p=self.dropout, training=self.training) 
         for conv in self.convs:
             x = F.relu(conv(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training)
+            x = F.dropout(x, p=self.dropout, training=self.training) """
 
         
         
