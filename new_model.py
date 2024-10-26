@@ -119,9 +119,9 @@ class EdgePredNet(torch.nn.Module):
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features) """
-        #self.lin5 = Linear(num_features, hidden_channels)
-        #self.lin6 = Linear(hidden_channels, num_classes)
-        self.lin5=Linear(1,num_classes)
+        self.lin5 = Linear(num_features, hidden_channels)
+        self.lin6 = Linear(hidden_channels, num_classes)
+        #self.lin5=Linear(1,num_classes)
     def forward(self, x, edge_index,xinit):
         #x=F.leaky_relu(self.lin1(x))
         #x=F.dropout(x, p=self.dropout, training=self.training) 
@@ -136,10 +136,10 @@ class EdgePredNet(torch.nn.Module):
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
         #edge_features = torch.cat([x_i, x_j], dim=-1)  
         #edge_pred= F.relu(self.lin5(edge_features))
-        edge_pred= F.relu(self.lin5((torch.sum(x_i * x_j, dim=-1, keepdim=True))))
+        edge_pred= F.relu(self.lin5(x_i * x_j))
         #edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
         #edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
-        #edge_pred = self.lin6(edge_pred) !!!
+        edge_pred = self.lin6(edge_pred) 
         return edge_pred
 
 def loss_func(probs, cliques_r,cliques_s):
