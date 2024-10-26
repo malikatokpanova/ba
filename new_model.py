@@ -63,8 +63,8 @@ class ramsey_MPNN(torch.nn.Module):
         self.edge_pred_net.lin2.reset_parameters()
         self.edge_pred_net.lin3.reset_parameters()
         self.edge_pred_net.lin4.reset_parameters() """
-        self.edge_pred_net.lin5.reset_parameters()
-        self.edge_pred_net.lin6.reset_parameters()
+        #self.edge_pred_net.lin5.reset_parameters()
+        #self.edge_pred_net.lin6.reset_parameters()
         
     def forward(self,x):
         x = self.node_features
