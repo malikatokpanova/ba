@@ -206,7 +206,7 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     
     # if we have (n,n,2) tensor
     class_probs=probs[:,:,0] #taking the probabilities of the blue class
-    
+    class_probs=class_probs.to(device)
     #flat_probs = probs[edge_index[0], edge_index[1]] if we have (n,n) tensor
     flat_probs = class_probs[edge_index[0], edge_index[1]]
     sorted_inds = torch.argsort(flat_probs, descending=True)
