@@ -85,7 +85,7 @@ train_loss_dict={}
 
 
 #train
-def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_features, learning_rate_1,learning_rate_2, epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s):
+def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_features, learning_rate_1,learning_rate_2, epochs, lr_decay_step_size, lr_decay_factor, clique_r, num_cliques,all_cliques_r,all_cliques_s, device=device):
     
     net.train()
     wandb.watch(net,log='all',log_freq=10)
@@ -280,7 +280,7 @@ def model_pipeline(hyperparameters):
         
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
         net.to(device)
-        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, config.num_cliques,all_cliques_r,all_cliques_s)#,hidden_2,edge_drop_p,edge_dropout_decay)
+        train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, config.num_cliques,all_cliques_r,all_cliques_s, device)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
         torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}_{config.epochs}.pth')
         net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}_{config.epochs}.pth'))
