@@ -144,7 +144,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
 
 #torch.manual_seed(0)
 
-def make(config):
+def make(config,device):
     net=ramsey_MPNN(num_nodes, config.hidden_channels,config.num_features, config.num_layers, config.dropout).to(device) 
     net.to(device).reset_parameters()
     params=[param for name, param in net.named_parameters() if 'edge_pred_net' not in name]
@@ -201,7 +201,7 @@ def discretize(probs, cliques_r,cliques_s,threshold=0.5):
     return sets, expected_obj_G.detach()
 
 #retrieve deterministically
-def decode_graph(num_nodes,probs,cliques_r,cliques_s):
+def decode_graph(num_nodes,probs,cliques_r,cliques_s,device):
     edge_index = torch.combinations(torch.arange(num_nodes), r=2).t().to(device)
     
     # if we have (n,n,2) tensor
@@ -244,12 +244,12 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s):
     return sets, expected_obj_G.detach() #returning the coloring and its cost
 
     
-def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers,dropout,num_cliques, epochs):
+def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,seed,num_layers,dropout,num_cliques, epochs,device):
 
     with torch.no_grad():
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
-        results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s)
+        results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s,device)
         """ coloring=mc_sampling_new(probs, num_samples)
         results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
         
@@ -271,6 +271,7 @@ def model_pipeline(hyperparameters):
     with wandb.init(project="project", config=hyperparameters):
         config = wandb.config
         
+        device= torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         torch.manual_seed(config.seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(config.seed)
@@ -278,15 +279,15 @@ def model_pipeline(hyperparameters):
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
         
-        net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config)
+        net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config,device)
         net.to(device)
         train_model(net,optimizer_1,optimizer_2,num_nodes,config.hidden_channels,config.num_features,config.lr_1, config.lr_2,  config.epochs, lr_decay_step_size, lr_decay_factor, clique_r, config.num_cliques,all_cliques_r,all_cliques_s, device)#,hidden_2,edge_drop_p,edge_dropout_decay)
         
         torch.save(net.state_dict(), f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}_{config.epochs}.pth')
         net.load_state_dict(torch.load(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}_{config.epochs}.pth'))
         #wandb.save(f'model_{num_nodes}_{config.hidden_channels}_{config.num_features}_{config.lr_1}_{config.lr_2}_{config.seed}_{config.num_layers}_{config.dropout}_{config.num_cliques}.pth')
-        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques, config.epochs)
-        print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques, config.epochs))
+        evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques, config.epochs,device)
+        print(evaluate(net,all_cliques_r,all_cliques_s,config.hidden_channels,config.num_features,config.lr_1,config.lr_2, config.seed,config.num_layers,config.dropout,config.num_cliques, config.epochs,device))
         
         return net
     
