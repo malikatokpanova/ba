@@ -25,8 +25,8 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 17,   
-    'clique_r':4,
-    'clique_s':4,
+    'clique_r':3,
+    'clique_s':6,
     'num_classes':2
 }
 
@@ -161,7 +161,7 @@ def evaluate(x, cliques_r, cliques_s):
         wandb.log({'thresholded_cost':thresholded_cost, 'cost':cost})  
     return thresholded_cost, sets
 
-#retrieve determinstically
+#retrieve the solution with the method of conditional expectation
 def decode_graph(probs, edge_dict, cliques_r, cliques_s):
     class_probs=probs[:,1]
     sorted_id = torch.argsort(class_probs, descending=True)
