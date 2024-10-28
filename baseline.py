@@ -25,8 +25,8 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 17,   
-    'clique_r':3,
-    'clique_s':6,
+    'clique_r':4,
+    'clique_s':4,
     'num_classes':2
 }
 
@@ -155,11 +155,11 @@ def evaluate(x, cliques_r, cliques_s):
         edge_dict = {tuple(edge_list[i].tolist()): i for i in range(edge_list.size(0))}
         edge_dict.update({(edge[1], edge[0]): i for edge, i in edge_dict.items()})
 
-        sets = torch.argmax(probs, dim=1)
-        thresholded_cost = cost_func(sets,edge_dict, cliques_r, cliques_s)
+        sets_thr = torch.argmax(probs, dim=1)
+        thresholded_cost = cost_func(sets_thr,edge_dict, cliques_r, cliques_s)
         sets, cost= decode_graph(probs, edge_dict, cliques_r, cliques_s)
         wandb.log({'thresholded_cost':thresholded_cost, 'cost':cost})  
-    return thresholded_cost, sets
+    return cost, sets
 
 #retrieve the solution with the method of conditional expectation
 def decode_graph(probs, edge_dict, cliques_r, cliques_s):
