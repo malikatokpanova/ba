@@ -57,7 +57,7 @@ config=dict(
         num_layers=5,
         dropout=0.1,
         num_cliques=128,
-        epochs=20000,
+        epochs=6000,
 )
 
 graph_parameters={
@@ -92,8 +92,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     for epoch in range(epochs):
         
-        """ if epoch == 10000:
-            net.node_features.requires_grad = False """    
+        """ if epoch == 1000:
+            net.node_features.requires_grad = False  """   
         """ if epoch % lr_decay_step_size == 0
             for param_group in optimizer_1.param_groups:
                     param_group['lr'] = lr_decay_factor * param_group['lr']
