@@ -80,7 +80,7 @@ class ramsey_MPNN(torch.nn.Module):
         for conv in self.convs:
             x = F.relu(conv(x, edge_index))
             x = F.dropout(x, p=self.dropout, training=self.training)  
-            #x = x + xinit #skip connection
+            x = x + xinit #skip connection
         
         
         
