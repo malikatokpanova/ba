@@ -30,22 +30,22 @@ class ramsey_MPNN(torch.nn.Module):
         if num_layers > 1:
             for i in range(num_layers - 1):
                 self.convs.append(GINConv(Sequential(
-                    Linear(num_features, hidden_channels),
+                    Linear(hidden_channels, hidden_channels),
                     ReLU(),
-                    Linear(hidden_channels, num_features),
+                    Linear(hidden_channels, hidden_channels),
                     ReLU(),
                 ), train_eps=True)) 
                 
         self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
             ReLU(),
-            Linear( hidden_channels,  num_features),
+            Linear( hidden_channels,  hidden_channels),
             ReLU(),
         ),train_eps=True) 
         
             
         #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
         #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.lin1=Linear(num_features,hidden_channels)
+        self.lin1=Linear(hidden_channels,hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.lin3=Linear(hidden_channels,hidden_channels)
         self.lin4=Linear(hidden_channels,num_features)
@@ -80,14 +80,14 @@ class ramsey_MPNN(torch.nn.Module):
         for conv in self.convs:
             x = F.relu(conv(x, edge_index))
             x = F.dropout(x, p=self.dropout, training=self.training)  
-            x = x + xinit #skip connection
+            
         
         
         
         x=F.leaky_relu(self.lin1(x))
         x=F.dropout(x, p=self.dropout, training=self.training) 
-        #x=F.leaky_relu(self.lin2(x)) 
-        #x=F.dropout(x, p=self.dropout, training=self.training)
+        x=F.leaky_relu(self.lin2(x)) 
+        x=F.dropout(x, p=self.dropout, training=self.training)
         #x=F.leaky_relu(self.lin3(x)) #
         #x=F.dropout(x, p=self.dropout, training=self.training)  
         x=self.lin4(x)
