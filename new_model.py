@@ -91,7 +91,7 @@ class ramsey_MPNN(torch.nn.Module):
         #x=F.leaky_relu(self.lin3(x)) #
         #x=F.dropout(x, p=self.dropout, training=self.training)  
         x=self.lin4(x)
-        x=x+xinit  #skip connection  
+        #x=x+xinit  #skip connection  
                   
 
         """ x_i = x[edge_index[0], :]
