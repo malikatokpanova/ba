@@ -20,7 +20,7 @@ config=dict(
         lr=0.001,
         seed=0,
         batch_size=3,
-        epochs=20000,
+        epochs=30000,
 )
 
 graph_parameters={
@@ -216,6 +216,6 @@ def model_pipeline(hyperparameters):
         print(cost, sets)
         return 
     
-cost,sets= model_pipeline(config)
+model_pipeline(config)
 
 
