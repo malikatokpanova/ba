@@ -25,8 +25,8 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 17,   
-    'clique_r':4,
-    'clique_s':4,
+    'clique_r':3,
+    'clique_s':6,
     'num_classes':2
 }
 
