@@ -195,8 +195,8 @@ def decode_graph(probs, edge_dict, cliques_r, cliques_s):
 def make_config(config):
     cliques_r=torch.combinations(torch.arange(num_nodes),clique_r)
     cliques_s=torch.combinations(torch.arange(num_nodes),clique_s)
-    #x=torch.randn(num_edges,input_dim, requires_grad=True) #normal distribution
-    x=torch.rand(num_edges,num_classes, requires_grad=True) # uniform distribution
+    x=torch.randn(num_edges,num_classes, requires_grad=True) #normal distribution
+    #x=torch.rand(num_edges,num_classes, requires_grad=True) # uniform distribution
     
     optimizer= torch.optim.Adam([x], lr=config.lr)
     return optimizer, cliques_r, cliques_s, x
