@@ -28,7 +28,8 @@ class ramsey_NN(torch.nn.Module):
         self.lin2=Linear(hidden_channels,hidden_channels)
         self.bn2 = nn.BatchNorm1d(hidden_channels)
         self.lin3=Linear(hidden_channels,num_features)
-        
+        self.bn3=nn.BatchNorm1d(hidden_channels)
+        self.lin4=Linear(hidden_channels,num_features)
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
     def reset_parameters(self):
@@ -43,6 +44,13 @@ class ramsey_NN(torch.nn.Module):
         nn.init.zeros_(self.lin2.bias)
         nn.init.xavier_uniform_(self.lin3.weight)
         nn.init.zeros_(self.lin3.bias)
+        nn.init.xavier_uniform_(self.lin4.weight)
+        nn.init.zeros_(self.lin4.bias)
+        
+        self.bn1.reset_parameters()
+        self.bn2.reset_parameters()
+        self.bn3.reset_parameters()
+        
         nn.init.xavier_uniform_(self.edge_pred_net.lin5.weight)
         nn.init.zeros_(self.edge_pred_net.lin5.bias)
         
@@ -54,9 +62,6 @@ class ramsey_NN(torch.nn.Module):
         
         xinit=x.clone()
          
-        
-        # try batch normalization
-        # try leaky relu with a negative slope of 0.01
         
         x=F.leaky_relu(self.lin1(x),negative_slope=0.01)
         x=self.bn1(x)
