@@ -24,7 +24,9 @@ class ramsey_NN(torch.nn.Module):
         self.num_classes=num_classes
         
         self.lin1=Linear(num_features,hidden_channels)
+        self.bn1 = nn.BatchNorm1d(hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
+        self.bn2 = nn.BatchNorm1d(hidden_channels)
         self.lin3=Linear(hidden_channels,num_features)
         
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
@@ -56,10 +58,12 @@ class ramsey_NN(torch.nn.Module):
         # try batch normalization
         # try leaky relu with a negative slope of 0.01
         
-        x=F.leaky_relu(self.lin1(x))
-        x=F.dropout(x, p=self.dropout, training=self.training) 
-        x=F.leaky_relu(self.lin2(x)) 
-        x=F.dropout(x, p=self.dropout, training=self.training)
+        x=F.leaky_relu(self.lin1(x),negative_slope=0.01)
+        x=self.bn1(x)
+        #x=F.dropout(x, p=self.dropout, training=self.training) 
+        x=F.leaky_relu(self.lin2(x),negative_slope=0.01) 
+        x=self.bn2(x)
+        #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin3(x)
         x=x+xinit  #skip connection  
                   
