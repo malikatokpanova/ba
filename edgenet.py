@@ -20,7 +20,7 @@ class ramsey_NN(torch.nn.Module):
         self.hidden_channels=hidden_channels
         self.numlayers=num_layers
         self.dropout=dropout
-        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        self.node_features = torch.nn.Parameter(torch.rand(num_nodes, num_features),requires_grad=True) 
         self.num_classes=num_classes
         
         self.lin1=Linear(num_features,hidden_channels)
