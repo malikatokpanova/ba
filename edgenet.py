@@ -84,21 +84,22 @@ class ramsey_NN(torch.nn.Module):
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels, num_classes, dropout):
         super(EdgePredNet, self).__init__() 
-        self.lin5=Linear(2*num_features,hidden_channels)
+        self.lin5=Linear(2*num_features,num_classes)
         self.bn5 = nn.BatchNorm1d(hidden_channels)
         self.lin6=Linear(hidden_channels,num_classes)
-    def forward(self, x, edge_index,xinit):
+    def forward(self, x, edge_index, xinit):
         x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
         edge_features = torch.cat([x_i, x_j], dim=-1)  
-        edge_pred= F.relu(self.lin5(edge_features))
+        #edge_pred= F.relu(self.lin5(edge_features)) #original
         #edge_pred= F.relu(self.lin5(x_i * x_j)) 
-        edge_pred=self.bn5(edge_pred)
-        edge_pred=self.lin6(edge_pred)
+        #edge_pred=self.bn5(edge_pred) #followed by
+        #edge_pred=self.lin6(edge_pred) #followed by 
         #edge_pred = self.lin5(x_i * x_j)
         #edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
         #edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
-        #edge_pred = self.lin6(edge_pred) 
+        #edge_pred = self.lin6(edge_pred)
+        edge_pred=self.lin5(edge_features) 
         return edge_pred
 
 def loss_func(probs, cliques_r,cliques_s):
