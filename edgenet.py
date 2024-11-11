@@ -93,7 +93,7 @@ class EdgePredNet(torch.nn.Module):
         #edge_features = torch.cat([x_i, x_j], dim=-1)  #concat
         #edge_features = x_i * x_j
         #edge_pred= F.relu(self.lin5(edge_features)) #original
-        edge_pred= F.relu(self.lin5(x_i * x_j)) 
+        edge_pred= F.leaky_relu(self.lin5(x_i * x_j), negative_slope=0.01) 
         edge_pred=self.bn5(edge_pred) #followed by
         edge_pred=self.lin6(edge_pred) #followed by 
         #edge_pred = self.lin5(x_i * x_j)
