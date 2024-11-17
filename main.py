@@ -41,9 +41,9 @@ config=dict(
 )
 
 graph_parameters={
-    'num_nodes': 5,   
+    'num_nodes': 8,   
     'clique_r':3,
-    'clique_s':3,
+    'clique_s':4,
     'num_classes':2
 }
 
