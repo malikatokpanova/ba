@@ -131,7 +131,10 @@ class EdgePredNet(torch.nn.Module):
         return edge_pred
 
 def loss_func(probs, cliques_r,cliques_s):
+    device = probs.device
     loss = 0
+    cliques_r = cliques_r.to(device)
+    cliques_s = cliques_s.to(device)
     
     for clique in cliques_r:   
         edge_indices=torch.combinations(clique, r=2).t()
@@ -164,7 +167,10 @@ def loss_func(probs, cliques_r,cliques_s):
     
 #evaluation
 def cost(probs, cliques_r,cliques_s):
+    device = probs.device
     expectation = 0
+    cliques_r = cliques_r.to(device)
+    cliques_s = cliques_s.to(device)
     
     for clique in cliques_r:   
         edge_indices=torch.combinations(clique, r=2).t()
