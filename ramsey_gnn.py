@@ -29,7 +29,7 @@ class ramsey_MPNN(torch.nn.Module):
         self.convs=nn.ModuleList()
         self.bns = nn.ModuleList()
         if num_layers > 1:
-            for i in range(num_layers - 1):
+            for i in range(num_layers - 2):
                 self.convs.append(GINConv(Sequential(
                     Linear(hidden_channels, hidden_channels),
                     ReLU(),
@@ -43,7 +43,11 @@ class ramsey_MPNN(torch.nn.Module):
             Linear( hidden_channels,  hidden_channels),
             ReLU(),
         ),train_eps=True) 
-        
+        self.convlast = GINConv(Sequential(Linear(hidden_channels,  hidden_channels),
+            ReLU(),
+            Linear( hidden_channels,  num_features),
+            ReLU(),
+        ),train_eps=True)
             
         self.lin1=Linear(hidden_channels,hidden_channels)
         self.bn1 = nn.BatchNorm1d(hidden_channels)
@@ -58,6 +62,7 @@ class ramsey_MPNN(torch.nn.Module):
             conv.reset_parameters()
             bn.reset_parameters()
                 
+        self.convlast.reset_parameters()
         
         nn.init.xavier_uniform_(self.lin1.weight)
         nn.init.zeros_(self.lin1.bias)
@@ -86,13 +91,15 @@ class ramsey_MPNN(torch.nn.Module):
          
         x=F.leaky_relu(self.conv1(x, edge_index), negative_slope=0.01)
         for conv, bn in zip(self.convs, self.bns):
-            x = F.leaky_relu(conv(x, edge_index), negative_slope=0.01)
+            x = conv(x, edge_index)
             x = bn(x)
+            x = F.leaky_relu(x, negative_slope=0.01)
             
-    
+        x=self.convlast(x, edge_index)
+        x=x+xinit  #skip connection
          
         
-        x=F.leaky_relu(self.lin1(x),negative_slope=0.01)
+        """ x=F.leaky_relu(self.lin1(x),negative_slope=0.01)
         x=self.bn1(x)
         #x=F.dropout(x, p=self.dropout, training=self.training) 
         x=F.leaky_relu(self.lin2(x),negative_slope=0.01) 
@@ -100,7 +107,7 @@ class ramsey_MPNN(torch.nn.Module):
         #x=F.dropout(x, p=self.dropout, training=self.training)
         x=self.lin3(x)
         x=x+xinit  #skip connection  
-                  
+                   """
         
         
         edge_pred = self.edge_pred_net(x, edge_index, xinit)
