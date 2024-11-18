@@ -122,17 +122,13 @@ class ramsey_MPNN(torch.nn.Module):
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels, num_classes, dropout):
         super(EdgePredNet, self).__init__() 
-        #self.lin5=Linear(num_features,hidden_channels) #elementwise mult
-        self.lin5=Linear(2*num_features,hidden_channels) #concat
+        self.lin5=Linear(num_features,hidden_channels) #elementwise mult
         self.bn5 = nn.BatchNorm1d(hidden_channels)
         self.lin6=Linear(hidden_channels,num_classes)
     def forward(self, x, edge_index, xinit):
         x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
-        edge_features = torch.cat([x_i, x_j], dim=-1)  #concat
-
-        edge_pred= F.leaky_relu(self.lin5(edge_features), negative_slope=0.01) # concat
-        #edge_pred= F.leaky_relu(self.lin5(x_i * x_j), negative_slope=0.01) #elementwise mult
+        edge_pred= F.leaky_relu(self.lin5(x_i * x_j), negative_slope=0.01) #elementwise mult
         edge_pred=self.bn5(edge_pred) #followed by
         edge_pred=self.lin6(edge_pred) #followed by 
         return edge_pred
