@@ -22,11 +22,12 @@ class ramsey_MPNN(torch.nn.Module):
         #self.node_embedding = nn.Embedding(num_nodes, num_features)
         self.numlayers=num_layers
         self.dropout=dropout
-        self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
+        self.node_features = torch.nn.Parameter(torch.rand(num_nodes, num_features),requires_grad=True) 
         self.num_classes=num_classes
         
         
         self.convs=nn.ModuleList()
+        self.bns = nn.ModuleList()
         if num_layers > 1:
             for i in range(num_layers - 1):
                 self.convs.append(GINConv(Sequential(
@@ -35,6 +36,7 @@ class ramsey_MPNN(torch.nn.Module):
                     Linear(hidden_channels, hidden_channels),
                     ReLU(),
                 ), train_eps=True)) 
+                self.bns.append(nn.BatchNorm1d(hidden_channels))
                 
         self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
             ReLU(),
@@ -43,29 +45,41 @@ class ramsey_MPNN(torch.nn.Module):
         ),train_eps=True) 
         
             
-        #self.node_features = torch.nn.Parameter(torch.randn(num_nodes, num_features),requires_grad=True) 
-        #self.node_features = torch.nn.Parameter(torch.empty(num_nodes, num_features))
-        self.lin1=Linear(num_features,hidden_channels)
+        self.lin1=Linear(hidden_channels,hidden_channels)
+        self.bn1 = nn.BatchNorm1d(hidden_channels)
         self.lin2=Linear(hidden_channels,hidden_channels)
-        self.lin3=Linear(hidden_channels,hidden_channels)
-        self.lin4=Linear(hidden_channels,num_features)
+        self.bn2 = nn.BatchNorm1d(hidden_channels)
+        self.lin3=Linear(hidden_channels,num_features)
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
     def reset_parameters(self):
-        self.conv1.reset_parameters()
-        for conv in self.convs:
-            conv.reset_parameters()  
+        nn.init.xavier_uniform_(self.conv1.weight)
+        if self.conv1.bias is not None:
+            nn.init.zeros_(self.conv1.bias)
         
-        """ self.lin1.reset_parameters()
-        self.lin2.reset_parameters()
-        self.lin3.reset_parameters()
-        self.lin4.reset_parameters() """
-        """ self.edge_pred_net.lin1.reset_parameters()
-        self.edge_pred_net.lin2.reset_parameters()
-        self.edge_pred_net.lin3.reset_parameters()
-        self.edge_pred_net.lin4.reset_parameters() """
-        #self.edge_pred_net.lin5.reset_parameters()
-        #self.edge_pred_net.lin6.reset_parameters()
+        for conv, bn in zip(self.convs, self.bns):
+            nn.init.xavier_uniform_(conv.weight)
+            if conv.bias is not None:
+                nn.init.zeros_(conv.bias)
+            bn.reset_parameters()
+                
+        
+        nn.init.xavier_uniform_(self.lin1.weight)
+        nn.init.zeros_(self.lin1.bias)
+        nn.init.xavier_uniform_(self.lin2.weight)
+        nn.init.zeros_(self.lin2.bias)
+        nn.init.xavier_uniform_(self.lin3.weight)
+        nn.init.zeros_(self.lin3.bias)
+        
+        self.bn1.reset_parameters()
+        self.bn2.reset_parameters()
+        self.edge_pred_net.bn5.reset_parameters()
+
+        nn.init.xavier_uniform_(self.edge_pred_net.lin5.weight)
+        nn.init.zeros_(self.edge_pred_net.lin5.bias)
+        
+        nn.init.xavier_uniform_(self.edge_pred_net.lin6.weight)
+        nn.init.zeros_(self.edge_pred_net.lin6.bias)
         
     def forward(self,x):
         x = self.node_features.to(x.device)
@@ -75,31 +89,23 @@ class ramsey_MPNN(torch.nn.Module):
         
         xinit=x.clone()
          
-        """ x=F.relu(self.conv1(x, edge_index))
-        x=F.dropout(x, p=self.dropout, training=self.training) 
-        for conv in self.convs:
-            x = F.relu(conv(x, edge_index))
-            x = F.dropout(x, p=self.dropout, training=self.training)   """
+        x=F.leaky_relu(self.conv1(x, edge_index), negative_slope=0.01)
+        for conv, bn in zip(self.convs, self.bns):
+            x = F.leaky_relu(conv(x, edge_index), negative_slope=0.01)
+            x = bn(x)
             
+    
+         
         
-        
-        
-        x=F.leaky_relu(self.lin1(x))
-        x=F.dropout(x, p=self.dropout, training=self.training) 
-        x=F.leaky_relu(self.lin2(x)) 
-        x=F.dropout(x, p=self.dropout, training=self.training)
-        #x=F.leaky_relu(self.lin3(x)) #
-        #x=F.dropout(x, p=self.dropout, training=self.training)  
-        x=self.lin4(x)
-        #x=x+xinit  #skip connection  
+        x=F.leaky_relu(self.lin1(x),negative_slope=0.01)
+        x=self.bn1(x)
+        #x=F.dropout(x, p=self.dropout, training=self.training) 
+        x=F.leaky_relu(self.lin2(x),negative_slope=0.01) 
+        x=self.bn2(x)
+        #x=F.dropout(x, p=self.dropout, training=self.training)
+        x=self.lin3(x)
+        x=x+xinit  #skip connection  
                   
-
-        """ x_i = x[edge_index[0], :]
-        x_j = x[edge_index[1], :]
-        edge_pred=torch.sigmoid(torch.sum(x_i * x_j, dim=-1)) """
-        
-        #probs[edge_index[0], edge_index[1]] = edge_pred.squeeze()
-        #probs[edge_index[1], edge_index[0]] = edge_pred.squeeze() 
         
         
         edge_pred = self.edge_pred_net(x, edge_index, xinit)
@@ -114,35 +120,19 @@ class ramsey_MPNN(torch.nn.Module):
 class EdgePredNet(torch.nn.Module):
     def __init__(self,num_features,hidden_channels, num_classes, dropout):
         super(EdgePredNet, self).__init__() 
-        #self.lin = Sequential(Linear(2*num_features, hidden_channels), ReLU(), Linear(hidden_channels, 1),torch.nn.Sigmoid())
-        self.dropout=dropout
-        #self.lin1=Linear(hidden_channels,hidden_channels) # if no GNN, then Linear(num_features, hidden_channels)
-        """ self.lin1=Linear(num_features,hidden_channels)
-        self.lin2=Linear(hidden_channels,hidden_channels)
-        self.lin3=Linear(hidden_channels,hidden_channels)
-        self.lin4=Linear(hidden_channels,num_features) """
-        #self.lin5 = Linear(num_features, hidden_channels) 
-        self.lin6 = Linear(hidden_channels, num_classes)
-        self.lin5=Linear(num_features,num_classes)
-    def forward(self, x, edge_index,xinit):
-        #x=F.leaky_relu(self.lin1(x))
-        #x=F.dropout(x, p=self.dropout, training=self.training) 
-        #x=F.leaky_relu(self.lin2(x)) 
-        #x=F.dropout(x, p=self.dropout, training=self.training)
-        """ x=F.leaky_relu(self.lin3(x))
-        x=F.dropout(x, p=self.dropout, training=self.training)  """
-        #x=self.lin4(x)
-        #x=x+xinit #skip connection
-        
+        #self.lin5=Linear(num_features,hidden_channels) #elementwise mult
+        self.lin5=Linear(2*num_features,hidden_channels) #concat
+        self.bn5 = nn.BatchNorm1d(hidden_channels)
+        self.lin6=Linear(hidden_channels,num_classes)
+    def forward(self, x, edge_index, xinit):
         x_i = x[edge_index[0], :] #edge_index[0] contains the source nodes
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
-        #edge_features = torch.cat([x_i, x_j], dim=-1)  
-        #edge_pred= F.relu(self.lin5(edge_features))
-        #edge_pred= F.relu(self.lin5(x_i * x_j)) !!!
-        edge_pred = self.lin5(x_i * x_j)
-        #edge_pred = F.relu(self.lin5(torch.sum(x_i * x_j, dim=-1, keepdim=True)))
-        #edge_pred = F.dropout(edge_pred, p=self.dropout, training=self.training)
-        #edge_pred = self.lin6(edge_pred) 
+        edge_features = torch.cat([x_i, x_j], dim=-1)  #concat
+
+        edge_pred= F.leaky_relu(self.lin5(edge_features), negative_slope=0.01) # concat
+        #edge_pred= F.leaky_relu(self.lin5(x_i * x_j), negative_slope=0.01) #elementwise mult
+        edge_pred=self.bn5(edge_pred) #followed by
+        edge_pred=self.lin6(edge_pred) #followed by 
         return edge_pred
 
 def loss_func(probs, cliques_r,cliques_s):
