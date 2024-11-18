@@ -19,33 +19,10 @@ from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 
 import random
 from random import sample
-from new_model import ramsey_MPNN, loss_func, cost
+from ramsey_gnn import ramsey_MPNN, loss_func, cost
 
 import wandb
-
-
-import argparse
 from pathlib import Path
-
-""" parser = argparse.ArgumentParser()
-
-#parser.add_argument('num_nodes', type=int, help='Number of nodes')
-parser.add_argument('--hidden_channels', type=int, help='Number of hidden channels', default=32)
-parser.add_argument('--num_features', type=int, help='Number of features', default=32)
-
-parser.add_argument('--learning_rate_1', type=float, help='Learning rate 1', default=0.001)
-parser.add_argument('--learning_rate_2', type=float, help='Learning rate 2', default=0.01)
-parser.add_argument('--epochs', type=int, help='Number of epochs', default=100)
-
-args = parser.parse_args()
-
-#num_samples = args.num_samples
-hidden_channels=args.hidden_channels
-num_features=args.num_features
-lr_1=args.learning_rate_1
-lr_2=args.learning_rate_2
-
-epochs = args.epochs """
 
 device= torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 config=dict(
@@ -57,7 +34,7 @@ config=dict(
         num_layers=5,
         dropout=0.1,
         num_cliques=128,
-        epochs=30000,
+        epochs=10000,
 )
 
 graph_parameters={
