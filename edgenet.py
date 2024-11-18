@@ -93,7 +93,7 @@ class EdgePredNet(torch.nn.Module):
         x_j = x[edge_index[1], :] #edge_index[1] contains the target nodes
         edge_features = torch.cat([x_i, x_j], dim=-1)  #concat
 
-        edge_pred= F.leaky_relu(self.lin5(edge_features), negative_clope=0.01) #original
+        edge_pred= F.leaky_relu(self.lin5(edge_features), negative_slope=0.01) #original
         #edge_pred= F.leaky_relu(self.lin5(x_i * x_j), negative_slope=0.01) #elementwise mult
         edge_pred=self.bn5(edge_pred) #followed by
         edge_pred=self.lin6(edge_pred) #followed by 
