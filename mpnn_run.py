@@ -1,4 +1,4 @@
-#import numpy as np
+import numpy as np
 #import matplotlib.pyplot as plt
 from itertools import combinations, chain
 from itertools import product
@@ -98,8 +98,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         if epoch%10==0 or epoch==epochs-1:
             wandb.log({"epoch": epoch, "loss": loss.item()})
             node_embeddings = net.node_features.detach().cpu().numpy()
-            node_embedding_variance = node_embeddings.var(axis=0)
-            wandb.log({"epoch": epoch, "node_embedding_variance": node_embedding_variance.tolist()})
+            node_embedding_variance = np.var(node_embeddings, axis=0).mean()  
+            wandb.log({"epoch": epoch, "node_embedding_variance": node_embedding_variance})
             
         if epoch==epochs-1:
             node_embeddings = net.node_features.detach().cpu().numpy()
