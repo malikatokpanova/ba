@@ -136,35 +136,6 @@ def make(config,device):
    
     return net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s
 
-#plotting loss
-""" 
-plt.clf()
-fig,ax=plt.subplots(figsize=(9,7))
-epochs_=range(0,epochs)
-plt.plot(epochs_,train_loss_dict.values(), label='Training loss')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.title('Training loss')
-
-textstr='\n'.join((
-fr'$N={num_nodes}$',
-f'$\\beta_1={lr_1}$',
-f'$\\beta_2={lr_2}$',
-f'$\\gamma={hidden_channels}$',
-fr'$\omega={num_features}$'))
-
-
-props = dict(boxstyle='square', facecolor='white', alpha=0.5)
-
-ax.text(0.82, 0.95, textstr, transform=ax.transAxes, fontsize=14,
-        verticalalignment='top', bbox=props)
-
-
-#plt.legend()
-#plt.grid(color = 'gray', linestyle = '--', linewidth = 0.5)
-plt.savefig(f'loss_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}.png')
-plt.close    
-"""   
 def discretize(probs, cliques_r,cliques_s,threshold=0.5):
     num_nodes = probs.size(0)
     sets = torch.zeros(num_nodes, num_nodes, dtype=torch.long, device=probs.device)
@@ -230,15 +201,6 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
         net.eval()
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s,device)
-        """ coloring=mc_sampling_new(probs, num_samples)
-        results_sampling[num_nodes]=optimal_new(cliques_r,cliques_s,num_samples, coloring) """
-        
-        """  params_key = str(params)
-        if params_key not in results:
-            results[params_key] = {}
-            
-        results[params_key][num_nodes]=results_fin
-        """
         results_fin_thr = discretize(probs, cliques_r,cliques_s)
         wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}.onnx')
@@ -273,64 +235,3 @@ def model_pipeline(hyperparameters):
     
 
 net=model_pipeline(config)
-
-
-#plot the graph
-""" color_dict={0:'red', 1:'blue'}
-
-graph_coloring=nx.Graph()
-#sets[0]
-for i in range(num_nodes):
-    for j in range(num_nodes):
-        if i<j:
-            if sets[0][i,j]==1:
-                graph_coloring.add_edge(i,j, color='blue')
-            else:
-                graph_coloring.add_edge(i,j, color='red')
-            
-edge_colors=[graph_coloring[u][v]['color'] for u,v in graph_coloring.edges()]
-pos = nx.circular_layout(graph_coloring)  
-plt.title('Ramsey (3,3)-graph on 5 vertices')
-nx.draw(graph_coloring, pos, edge_color=edge_colors, with_labels=True, node_color='lightgrey', node_size=500)
-
-plt.show()   
-"""
-
-"""#retrieve deterministically when we have (n,n) probability tensor
-def decode_graph(num_nodes,probs,cliques_r,cliques_s):
-    edge_index = torch.combinations(torch.arange(num_nodes), r=2).t().to(device)
-    flat_probs = probs[edge_index[0], edge_index[1]]
-    sorted_inds = torch.argsort(flat_probs, descending=True)
-    
-    sets = probs.detach().clone().to(device)
-    
-    for flat_index in sorted_inds:
-        
-        edge = edge_index[:, flat_index]
-        src, dst = edge[0].item(), edge[1].item()
-        
-        graph_probs_0 = sets.clone()
-        graph_probs_1 = sets.clone()
-        
-        
-        graph_probs_0[src, dst] = 0
-        graph_probs_0[dst,src] = 0  
-        
-        graph_probs_1[src, dst] = 1
-        graph_probs_1[dst,src] = 1  
-        
-        
-        #expected_obj_0 = cost(graph_probs_0, cliques_r,cliques_s) #initial, edge is red
-        #expected_obj_1 = cost(graph_probs_1, cliques_r,cliques_s) #edge is blue in the solution
-        expected_obj_0 = loss_func(graph_probs_0, cliques_r,cliques_s) #initially edge is red
-        expected_obj_1 = loss_func(graph_probs_1, cliques_r,cliques_s)
-            
-        if expected_obj_0 > expected_obj_1: 
-            sets[src, dst] = 1  # edge is blue
-            sets[dst,src] = 1  
-        else:
-            sets[src, dst] = 0  # Edge is red
-            sets[dst,src] = 0  
-    expected_obj_G = cost(sets, cliques_r,cliques_s)
-    return sets, expected_obj_G.detach() #returning the coloring and its cost
-"""
