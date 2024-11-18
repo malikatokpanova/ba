@@ -53,14 +53,9 @@ class ramsey_MPNN(torch.nn.Module):
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
     def reset_parameters(self):
-        nn.init.xavier_uniform_(self.conv1.weight)
-        if self.conv1.bias is not None:
-            nn.init.zeros_(self.conv1.bias)
-        
+        self.conv1.reset_parameters()
         for conv, bn in zip(self.convs, self.bns):
-            nn.init.xavier_uniform_(conv.weight)
-            if conv.bias is not None:
-                nn.init.zeros_(conv.bias)
+            conv.reset_parameters()
             bn.reset_parameters()
                 
         
