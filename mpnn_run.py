@@ -216,6 +216,7 @@ def model_pipeline(hyperparameters):
         torch.manual_seed(config.seed)
         np.random.seed(config.seed)
         if torch.cuda.is_available():
+            torch.cuda.manual_seed(config.seed)
             torch.cuda.manual_seed_all(config.seed)
         random.seed(config.seed)
         torch.backends.cudnn.deterministic = True
