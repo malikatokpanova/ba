@@ -70,7 +70,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     for epoch in range(epochs):
         
         if epoch == 5000:
-            net.node_features.requires_grad = False    
+            net.node_features.requires_grad = False     
         """ if epoch % lr_decay_step_size == 0
             for param_group in optimizer_1.param_groups:
                     param_group['lr'] = lr_decay_factor * param_group['lr']
