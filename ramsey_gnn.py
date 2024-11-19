@@ -85,7 +85,7 @@ class ramsey_MPNN(torch.nn.Module):
         x = self.node_features.to(x.device)
         #x=self.node_embedding.weight
         num_nodes = x.shape[0]
-        edge_index = torch.combinations(torch.arange(self.num_nodes).to(x.device), r=2).t()
+        edge_index = torch.combinations(torch.arange(self.num_nodes), r=2).t()
         
         xinit=x.clone()
          
