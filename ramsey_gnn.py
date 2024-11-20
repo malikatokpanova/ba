@@ -49,11 +49,6 @@ class ramsey_MPNN(torch.nn.Module):
             ReLU(),
         ),train_eps=True)
             
-        self.lin1=Linear(hidden_channels,hidden_channels)
-        self.bn1 = nn.BatchNorm1d(hidden_channels)
-        self.lin2=Linear(hidden_channels,hidden_channels)
-        self.bn2 = nn.BatchNorm1d(hidden_channels)
-        self.lin3=Linear(hidden_channels,num_features)
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
     def reset_parameters(self):
@@ -64,16 +59,6 @@ class ramsey_MPNN(torch.nn.Module):
                 
         self.convlast.reset_parameters()
         
-        nn.init.xavier_uniform_(self.lin1.weight)
-        nn.init.zeros_(self.lin1.bias)
-        nn.init.xavier_uniform_(self.lin2.weight)
-        nn.init.zeros_(self.lin2.bias)
-        nn.init.xavier_uniform_(self.lin3.weight)
-        nn.init.zeros_(self.lin3.bias)
-        
-        self.bn1.reset_parameters()
-        self.bn2.reset_parameters()
-        self.edge_pred_net.bn5.reset_parameters()
 
         nn.init.xavier_uniform_(self.edge_pred_net.lin5.weight)
         nn.init.zeros_(self.edge_pred_net.lin5.bias)
@@ -98,16 +83,6 @@ class ramsey_MPNN(torch.nn.Module):
         x=self.convlast(x, edge_index)
         x=x+xinit  #skip connection
          
-        
-        """ x=F.leaky_relu(self.lin1(x),negative_slope=0.01)
-        x=self.bn1(x)
-        #x=F.dropout(x, p=self.dropout, training=self.training) 
-        x=F.leaky_relu(self.lin2(x),negative_slope=0.01) 
-        x=self.bn2(x)
-        #x=F.dropout(x, p=self.dropout, training=self.training)
-        x=self.lin3(x)
-        x=x+xinit  #skip connection  
-                   """
         
         
         edge_pred = self.edge_pred_net(x, edge_index, xinit)
