@@ -36,18 +36,24 @@ class ramsey_MPNN(torch.nn.Module):
                     Linear(hidden_channels, hidden_channels),
                     ReLU(),
                 ), train_eps=True)) 
-                self.bns.append(nn.BatchNorm1d(hidden_channels))
-                
-        self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
-            ReLU(),
-            Linear( hidden_channels,  hidden_channels),
-            ReLU(),
-        ),train_eps=True) 
-        self.convlast = GINConv(Sequential(Linear(hidden_channels,  hidden_channels),
-            ReLU(),
-            Linear( hidden_channels,  num_features),
-            ReLU(),
-        ),train_eps=True)
+                self.bns.append(nn.BatchNorm1d(hidden_channels)) 
+            self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
+                ReLU(),
+                Linear( hidden_channels,  hidden_channels),
+                ReLU(),
+            ),train_eps=True) 
+            self.convlast = GINConv(Sequential(Linear(hidden_channels,  hidden_channels),
+                ReLU(),
+                Linear( hidden_channels,  num_features),
+                ReLU(),
+            ),train_eps=True)
+        else:
+            self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
+                ReLU(),
+                Linear( hidden_channels,  num_features),
+                ReLU(),
+            ),train_eps=True) 
+            self.convlast = self.conv1
             
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
@@ -68,20 +74,23 @@ class ramsey_MPNN(torch.nn.Module):
         
     def forward(self,x):
         x = self.node_features.to(x.device)
-        #x=self.node_embedding.weight
+        
         num_nodes = x.shape[0]
         edge_index = torch.combinations(torch.arange(self.num_nodes), r=2).t()
         
         xinit=x.clone()
-         
-        x=F.leaky_relu(self.conv1(x, edge_index), negative_slope=0.01)
-        for conv, bn in zip(self.convs, self.bns):
-            x = conv(x, edge_index)
-            # changed order BN was before activation
-            x = F.leaky_relu(x, negative_slope=0.01)
-            x = bn(x)
+        if self.numlayers > 1:
+            x=F.leaky_relu(self.conv1(x, edge_index), negative_slope=0.01)
+            for conv, bn in zip(self.convs, self.bns):
+                x = conv(x, edge_index)
+                # changed order BN was before activation
+                x = F.leaky_relu(x, negative_slope=0.01)
+                x = bn(x)
             
-        x=self.convlast(x, edge_index)
+            x=self.convlast(x, edge_index)
+        else:
+            x=F.leaky_relu(self.conv1(x, edge_index), negative_slope=0.01)
+            
         x=x+xinit  #skip connection
          
         
