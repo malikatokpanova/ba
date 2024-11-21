@@ -59,7 +59,7 @@ class ramsey_MPNN(torch.nn.Module):
                 
         self.convlast.reset_parameters()
         
-
+        self.edge_pred_net.bn5.reset_parameters()
         nn.init.xavier_uniform_(self.edge_pred_net.lin5.weight)
         nn.init.zeros_(self.edge_pred_net.lin5.bias)
         
