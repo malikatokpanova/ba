@@ -77,8 +77,9 @@ class ramsey_MPNN(torch.nn.Module):
         x=F.leaky_relu(self.conv1(x, edge_index), negative_slope=0.01)
         for conv, bn in zip(self.convs, self.bns):
             x = conv(x, edge_index)
-            x = bn(x)
+            # changed order BN was before activation
             x = F.leaky_relu(x, negative_slope=0.01)
+            x = bn(x)
             
         x=self.convlast(x, edge_index)
         x=x+xinit  #skip connection
