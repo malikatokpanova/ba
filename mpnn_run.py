@@ -34,7 +34,7 @@ config=dict(
         num_layers=5,
         dropout=0.1,
         num_cliques=128,
-        epochs=10000,
+        epochs=500,
 )
 
 graph_parameters={
