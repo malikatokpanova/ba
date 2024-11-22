@@ -13,7 +13,7 @@ from torch.nn import Sequential as Seq, Linear, ReLU, LeakyReLU
 from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 
 class ramsey_MPNN(torch.nn.Module):
-    def __init__(self, num_nodes, hidden_channels,num_features,num_layers,dropout,num_classes=2):
+    def __init__(self, num_nodes, hidden_channels,num_features,num_layers,dropout,conv_type, num_classes=2):
         super(ramsey_MPNN, self).__init__()
         self.num_features=num_features
         self.num_nodes=num_nodes
@@ -24,36 +24,48 @@ class ramsey_MPNN(torch.nn.Module):
         self.dropout=dropout
         self.node_features = torch.nn.Parameter(torch.rand(num_nodes, num_features),requires_grad=True) 
         self.num_classes=num_classes
-        
+        self.conv_type=conv_type
         
         self.convs=nn.ModuleList()
         self.bns = nn.ModuleList()
         if num_layers > 1:
             for i in range(num_layers - 2):
-                self.convs.append(GINConv(Sequential(
-                    Linear(hidden_channels, hidden_channels),
+                if self.conv_type == 'GIN':
+                    self.convs.append(GINConv(Sequential(
+                        Linear(hidden_channels, hidden_channels),
+                        ReLU(),
+                        Linear(hidden_channels, hidden_channels),
+                        ReLU(),
+                    ), train_eps=True))
+                elif self.conv_type == 'GCN':
+                    self.convs.append(GCNConv(hidden_channels, hidden_channels))
+                self.bns.append(nn.BatchNorm1d(hidden_channels))
+
+            if self.conv_type == 'GIN':
+                self.conv1 = GINConv(Sequential(Linear(num_features, hidden_channels),
                     ReLU(),
                     Linear(hidden_channels, hidden_channels),
                     ReLU(),
-                ), train_eps=True)) 
-                self.bns.append(nn.BatchNorm1d(hidden_channels)) 
-            self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
-                ReLU(),
-                Linear( hidden_channels,  hidden_channels),
-                ReLU(),
-            ),train_eps=True) 
-            self.convlast = GINConv(Sequential(Linear(hidden_channels,  hidden_channels),
-                ReLU(),
-                Linear( hidden_channels,  num_features),
-                ReLU(),
-            ),train_eps=True)
+                ), train_eps=True)
+                self.convlast = GINConv(Sequential(Linear(hidden_channels, hidden_channels),
+                    ReLU(),
+                    Linear(hidden_channels, num_features),
+                    ReLU(),
+                ), train_eps=True)
+            elif self.conv_type == 'GCN':
+                self.conv1 = GCNConv(num_features, hidden_channels)
+                self.convlast = GCNConv(hidden_channels, num_features)
         else:
-            self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
-                ReLU(),
-                Linear( hidden_channels,  num_features),
-                ReLU(),
-            ),train_eps=True) 
-            self.convlast = self.conv1
+            if self.conv_type == 'GIN':
+                self.conv1 = GINConv(Sequential(Linear(num_features,  hidden_channels),
+                    ReLU(),
+                    Linear( hidden_channels,  num_features),
+                    ReLU(),
+                ),train_eps=True) 
+                self.convlast = self.conv1
+            elif self.conv_type == 'GCN':
+                self.conv1 = GCNConv(num_features, hidden_channels)
+                self.convlast = GCNConv(hidden_channels, num_features)
             
         self.edge_pred_net = EdgePredNet(num_features,hidden_channels,num_classes,dropout) 
         
