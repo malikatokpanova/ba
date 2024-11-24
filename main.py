@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch.nn import Linear
 #import networkx as nx
 import os
+import time
 
 from torch.optim import Adam
 
@@ -69,6 +70,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     net.train()
     wandb.watch(net,log='all',log_freq=10)
+    start_time = time.time()
     
     for epoch in range(epochs):
         
@@ -119,6 +121,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         optimizer_2.step()
 
         train_loss_dict[epoch]=loss.item() 
+    end_time = time.time()
+    wandb.log({'runtime': end_time - start_time})
         
         
 
@@ -239,8 +243,11 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
             
         results[params_key][num_nodes]=results_fin
         """
+        #-----------IMPORTANCE OF LEARNING---------------
+        uniform_probs=torch.rand(num_nodes,num_nodes,2,device=device)  
+        uniform_cost=decode_graph(num_nodes,uniform_probs,cliques_r,cliques_s,device)[1]
         results_fin_thr = discretize(probs, cliques_r,cliques_s)
-        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
+        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1], 'uniform_cost':uniform_cost})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}.onnx')
     return results_fin
