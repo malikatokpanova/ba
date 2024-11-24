@@ -34,7 +34,7 @@ config=dict(
         num_layers=5,
         dropout=0.1,
         num_cliques=128,
-        epochs=5000,
+        epochs=15000,
         conv_type='GIN',
 )
 
