@@ -20,13 +20,13 @@ config=dict(
         lr=0.001,
         seed=0,
         batch_size=3,
-        epochs=10000,
+        epochs=100,
 )
 
 graph_parameters={
-    'num_nodes': 17,   
-    'clique_r':4,
-    'clique_s':4,
+    'num_nodes': 5,   
+    'clique_r':3,
+    'clique_s':3,
     'num_classes':2
 }
 
