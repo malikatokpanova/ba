@@ -14,7 +14,7 @@ from torch.nn import Linear, Sequential, ReLU, BatchNorm1d as BN
 import random 
 import wandb
 import networkx as nx
-
+import time
 
 config=dict(
         lr=0.001,
@@ -99,6 +99,7 @@ def cost_soft(probs_blue, cliques_r, cliques_s,num_classes=2):
 
 def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes,num_epochs):
     #num_epochs = 10000
+    start_time = time.time()
     #scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.001)
     for epoch in range(num_epochs):
         optimizer.zero_grad()
@@ -120,7 +121,8 @@ def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes,
             prob_matrix=wandb.Table(data=probs.tolist(),columns=["red","blue"])
            
             wandb.log({"probs":prob_matrix})
-
+    end_time = time.time()
+    wandb.log({'runtime': end_time - start_time})
     return probs
 
 def cost_func(edge_classes, edge_dict, cliques_r, cliques_s):
