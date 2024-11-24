@@ -22,6 +22,7 @@ from random import sample
 from ramsey_gnn import ramsey_MPNN, loss_func, cost
 
 import wandb
+import time 
 from pathlib import Path
 
 device= torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -34,14 +35,14 @@ config=dict(
         num_layers=5,
         dropout=0.1,
         num_cliques=128,
-        epochs=15000,
+        epochs=100,
         conv_type='GIN',
 )
 
 graph_parameters={
-    'num_nodes': 17,   
+    'num_nodes': 5,   
     'clique_r':3,
-    'clique_s':6,
+    'clique_s':3,
     'num_classes':2
 }
 
@@ -67,6 +68,7 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
     
     net.train()
     wandb.watch(net,log='all',log_freq=10)
+    start_time = time.time()
     
     for epoch in range(epochs):
         
@@ -120,7 +122,8 @@ def train_model(net,optimizer_1,optimizer_2,num_nodes, hidden_channels,num_featu
         optimizer_2.step()
 
         train_loss_dict[epoch]=loss.item() 
-        
+    end_time = time.time()
+    wandb.log({'runtime': end_time - start_time})
         
 
 
@@ -202,7 +205,9 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s,device)
         results_fin_thr = discretize(probs, cliques_r,cliques_s)
-        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
+        uniform_probs=torch.rand(num_nodes,num_nodes,2,device=device)  
+        uniform_cost=decode_graph(num_nodes,uniform_probs,cliques_r,cliques_s,device)[1]
+        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1], "uniform_cost": uniform_cost})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}_{conv_type}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}_{conv_type}.onnx')
     return results_fin
