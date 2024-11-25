@@ -38,13 +38,13 @@ config=dict(
         num_layers=5,
         dropout=0.3,
         num_cliques=128,
-        epochs=10000,
+        epochs=500,
 )
 
 graph_parameters={
-    'num_nodes': 13,   
+    'num_nodes': 8,   
     'clique_r':3,
-    'clique_s':5,
+    'clique_s':4,
     'num_classes':2
 }
 
