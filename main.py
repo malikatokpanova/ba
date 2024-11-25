@@ -43,8 +43,8 @@ config=dict(
 
 graph_parameters={
     'num_nodes': 17,   
-    'clique_r':4,
-    'clique_s':4,
+    'clique_r':3,
+    'clique_s':6,
     'num_classes':2
 }
 
@@ -265,6 +265,7 @@ def model_pipeline(hyperparameters):
         random.seed(config.seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+        torch.use_deterministic_algorithms(True)
         
         net, optimizer_1, optimizer_2, all_cliques_r, all_cliques_s = make(config,device)
         net.to(device)
