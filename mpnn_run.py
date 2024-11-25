@@ -205,9 +205,10 @@ def evaluate(net,cliques_r,cliques_s, hidden_channels,num_features,lr_1,lr_2,see
         probs=net(torch.randn(net.num_nodes, net.num_features).to(device))
         results_fin=decode_graph(num_nodes,probs,cliques_r,cliques_s,device)
         results_fin_thr = discretize(probs, cliques_r,cliques_s)
-        uniform_probs=torch.rand(num_nodes,num_nodes,2,device=device)  
-        uniform_cost=decode_graph(num_nodes,uniform_probs,cliques_r,cliques_s,device)[1]
-        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1], "uniform_cost": uniform_cost})
+        #uniform_probs=torch.rand(num_nodes,num_nodes,2,device=device)  
+        #uniform_cost=decode_graph(num_nodes,uniform_probs,cliques_r,cliques_s,device)[1]
+        #wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1], "uniform_cost": uniform_cost})
+        wandb.log({"cost": results_fin[1], "thresholded_cost": results_fin_thr[1]})
     torch.onnx.export(net, torch.randn(net.num_nodes, net.num_features), f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}_{conv_type}.onnx')
     wandb.save(f'model_{num_nodes}_{hidden_channels}_{num_features}_{lr_1}_{lr_2}_{seed}_{num_layers}_{dropout}_{num_cliques}_{epochs}_{conv_type}.onnx')
     return results_fin
