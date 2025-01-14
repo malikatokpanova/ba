@@ -145,8 +145,9 @@ def decode_graph(num_nodes,probs,cliques_r,cliques_s,device):
     
     sets= class_probs.detach().clone().to(device)
     for flat_index in sorted_inds:
-        
+        # retrieve the source and target nodes for the current edge
         edge = edge_index[:, flat_index]
+        # extract the source node index and the target node index
         src, dst = edge[0].item(), edge[1].item()
         
         # create copies of the probabilties edge being blue to check both scenarios (p_{(i,j)}=1 and p_{(i,j)}=0)
