@@ -134,7 +134,7 @@ def loss_func(probs, cliques_r,cliques_s):
     
         
     return loss/N
-# cost function same as loss but instead of probs we have a discretized tensor and we use it to count monochromatic cliques
+# cost function same as loss but instead we use it to count monochromatic cliques
 def cost(probs, cliques_r,cliques_s):
     expectation = 0
     
