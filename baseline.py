@@ -104,8 +104,8 @@ def train_model(x, optimizer, all_cliques_r, all_cliques_s,batch_size,num_nodes,
         cliques_s = random.sample(all_cliques_s.tolist(),batch_size)
         cliques_s=torch.tensor(cliques_s,dtype=torch.long)
 
-        # apply softmax to obtain a probability distribution over the colors, i.e. probs is a tensor where each row sums to 1 
-        # (so that each row corresponds to a probability distribution over the two colors for an edge)
+        # apply softmax to obtain a probability distribution over the colors for an edge,
+        # i.e. probs is a tensor where each row sums to 1 
         probs=F.softmax(x, dim=1)
         loss = loss_func(probs, cliques_r, cliques_s,num_classes)
         loss.backward()
