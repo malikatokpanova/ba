@@ -114,7 +114,7 @@ def loss_func(probs, cliques_r,cliques_s):
         edge_indices=torch.combinations(clique, r=2).t()
         # we consider only edges where the first node index is less than the second (to not consider duplicate edges and diagonal)
         edge_indices = edge_indices[:, edge_indices[0] < edge_indices[1]]
-        # extract the probabilities of the edges being blue (class 0)
+        # extract the probabilities of the edges being blue 
         edge_probs = probs[edge_indices[0], edge_indices[1],0]
         # compute the product of the blue edge probabilities and add to the loss
         blue_prod = edge_probs.prod()
